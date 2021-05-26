@@ -190,7 +190,6 @@ body {
       text-decoration: underline;
       text-underline-offset: 10px;
       color: white;
-      padding: 10px 10px 10px 10px;
     }
   
     .nav-button:hover {
@@ -210,7 +209,7 @@ body {
     }
   
     .button {
-      width: 350px;
+      width: 275px;
       justify-content: space-around;
       display: inline-block;
       border: 5px solid black;
