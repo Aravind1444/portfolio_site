@@ -1,490 +1,230 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timer App</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      background-color: #f8f8f8;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      color: #cc0000;
-      font-size: 48px;
-      margin-top: 50px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px;
-      background-color: white;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .controls {
-      margin-bottom: 20px;
-    }
-
-    button {
-      font-size: 24px;
-      padding: 12px 24px;
-      margin: 10px;
-      background-color: #ac0000;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: background-color 0.3s, transform 0.3s;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    button:hover {
-      background-color: #ff3333;
-      transform: translateY(-2px);
-    }
-
-    input {
-      font-size: 24px;
-      padding: 12px;
-      width: 120px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-
-    input:focus {
-      border-color: #cc0000;
-    }
-
-    .fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #cc0000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .timer-container {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 50px;
-    }
-
-    .timer {
-      color: white;
-      font-size: 120px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .timer-labels {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .timer-labels span {
-      margin: 0 10px;
-    }
-
-    .progress-ring {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 600px;
-      height: 600px;
-      background: transparent;
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-
-    .progress-ring-circle {
-      stroke: white;
-      stroke-width: 4px;
-      fill: transparent;
-      stroke-dasharray: 1000;
-      stroke-dashoffset: 1000;
-      transition: stroke-dashoffset 1s linear;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
-    }
-
-    .fullscreen-buttons {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .fullscreen-buttons button {
-      font-size: 20px;
-      padding: 10px 20px;
-      margin: 0 10px;
-      background-color: #cc0000;
-      color: #fff;
-      border-radius: 10px;
-      box-shadow: 2px 2px 4px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .top-buttons {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
-    .top-buttons button {
-      font-size: 16px;
-      padding: 8px 16px;
-      margin: 0 5px;
-      background-color: #cc0000;
-      color: #fff;
-      border-radius: 10px;
-      box-shadow: 2px 2px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .times-up {
-      color: white;
-      font-size: 48px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .time-adjustment-buttons {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-
-    .time-adjustment-buttons button {
-      font-size: 16px;
-      padding: 8px 16px;
-      margin: 0 5px;
-      background-color: #cc0000;
-      color: #fff;
-      border-radius: 10px;
-      box-shadow: 2px 2px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-  </style>
+  <title>Aravind Venugopal</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="shortcut icon" href="/assets/images/aravind.jpg" type="image/x-icon">
 </head>
 
 <body>
-  <div id="app">
-    <h1>Timer App</h1>
-    <div class="container">
-      <div class="controls">
-        <input type="number" id="hours" min="0" placeholder="Hours">
-        <input type="number" id="minutes" min="0" max="59" placeholder="Minutes">
-        <input type="number" id="seconds" min="0" max="59" placeholder="Seconds">
-        <br>
-        <button id="startButton">Start</button>
-        <button id="bellButtonFirst">Play Sound</button>
+
+  <!--Navbar-->
+
+  <header class="header">
+    <div class="section">
+      <nav class="nav-bar">
+        <a href="/"><span class="nav-elements">Home</span></a>
+        <a href="#aboutme"><span class="nav-elements">About</span></a>
+        <a href="#projects"><span class="nav-elements">Projects</span></a>
+        <a href="https://blog.aravind.me" target="_blank"><span class="nav-elements">Blog</span></a>
+        <a href="#contact"><span class="nav-elements">Contact</span></a>
+      </nav>
+
+      <div class="hero-text">
+        <h1 class="hero-main">Aravind Venugopal</h1>
+        <h4 class="hero-subtitle">Program Manager | Community Evangelist</h4>
+      </div>
+      
+      <div class="hero-button-row">
+        <a href="http://resume.aravind.me" target="_blank"><span class="hero-button">Resume</span></a>
+        <a href="https://www.linkedin.com/in/aravind1444/" target="_blank"><span class="hero-button">LinkedIn</span></a>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div id="fullscreenTimer" class="fullscreen" style="display: none;">
-    <div class="timer-container">
-      <div class="timer" id="fullscreenTimerDisplay"></div>
-      <div class="timer-labels">
-        <span id="hoursLabel"> </span>
-        &nbsp;&nbsp;
-        <span id="minutesLabel"> </span>
-        &nbsp;&nbsp;
-        <span id="secondsLabel"> </span>
-      </div>
-      <div id="fullscreenTimer" class="fullscreen" style="display: none;"></div>
-      <div id="timesUpMessage" class="times-up" style="display: none;">Time's Up!</div>
-      <svg class="progress-ring" width="520" height="520">
-        <circle class="progress-ring-circle" id="progressCircle" cx="160" cy="160" r="158" />
-      </svg>
+  <!--Main Content-->
+
+  <main class="section">
+    <div class="main-content">
+      <section>
+        <h3 class="main-subheading" id="aboutme">About Me</h3>
+        <hr>
+        <p>Hi! I'm a Program Manager who loves to get things done. I'm
+          currently working as a Program Manager at <b>Target</b> in the TII ryse team. Before that, I used to work at an amzing startup called <b><a href = "https://workat.tech" target="_blank">workat.tech</a></b>.
+          I pursued my under gard in Electronics and Communication Engineering from MBCET, Trivandrum.</p>
+        <p>I'm also leading the <b><a href="https://workat.tech/discord" target="_blank">Communities Program</a></b> at workattech. While in my college, I had the amazing opportunity to kickstart 
+          Developer Student Clubs, grow the School of AI Trivandrum chapter, and do much more similar things. This holds me close to
+          the community initiatives. In my free time, I listen to my music playlists (craeted mainly by friend who knows my taste properly), create video based lectures or
+          browse something continuously over the internet 😜</p>
+        <p>I have worked with the following languages / technology as of now : </p>
+        <ul>
+          <li>Languages : Java, <b><a href="https://workat.tech/frontend-development/article/top-javascript-interview-questions-answers-bt2553k4egca" target="_blank">JavaScript</a></b>, C++</li>
+          <li>Web Development : React, Express.js, Node.js, HTML, CSS and Bootstrap</li>
+          <li>Android App Development : XML, Flutter, Firebase</li>
+          <li>Chatbot Development : Dialogflow</li>
+        </ul>
+      </section>
     </div>
+  </main>
 
-    <div class="fullscreen-buttons">
-      <button id="pauseButton">Pause</button>
-      <button id="resumeButton" disabled>Resume</button>
-      <button id="stopButton">Stop</button>
-      <button id="bellButton">Play Sound</button>
+  <!--Projects-->
+
+  <main class="section">
+    <div class="main-content">
+      <section>
+        <h3 class="main-subheading" id="projects">Projects</h3>
+        <hr>
+        <section class="bg-white h-100">
+          <div class="container py-5">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://drive.google.com/file/d/1LtyAzMxPupedxTEQahIutjKPABNbJf9U/view?usp=sharing" target="_blank">
+                    <img src="assets/images/mspace.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">Mendor Space</p>
+                  </a>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://blupetodo.netlify.app/" target="_blank">
+                    <img src="assets/images/todo.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">Todo List</p>
+                  </a>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://play.google.com/store/apps/details?id=me.aravind.sudotags" target="_blank">
+                    <img src="assets/images/sudotags.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">SudoTags</p>
+                  </a>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://play.google.com/store/apps/details?id=me.aravind.dsalgohb" target="_blank">
+                    <img src="assets/images/dsahb.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">DSA Handbook</p>
+                  </a>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://play.google.com/store/apps/details?id=me.aravind.blupespace" target="_blank">
+                    <img src="assets/images/blupe.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">Blupe - Video Meetings</p>
+                  </a>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="card shadow" style="border: none">
+                  <a href="https://emojificator.netlify.app/" target="_blank">
+                    <img src="assets/images/emojificator.png" class="card-img-top" alt="Image Card laceholder">
+                    <p class="project-text">Emojificator</p>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      </section>
     </div>
-    <div class="top-buttons">
-      <button id="fullscreenButton">Full Screen</button>
-      <button id="exitButton">Exit</button>
+  </main>
+
+  <!--Services Offered-->
+
+  <main class="section">
+    <h2 class="font-weight-bold text-black">How I can Help</h2>
+    <hr>
+    <section>
+        <div class="d-flex flex-column justify-content-center align-items-center text-center">
+          <div class="my-3">
+            <div class="row">
+              
+              <div class="col-md-4">
+                <div class="d-flex flex-column justify-content-around align-items-center rounded p-3">
+                  <img src="/assets/images/icons/community.png">
+                  <h4 class="mt-3">Community Strategy</h4>
+                  <div class="text-muted my-2">
+                    If you're starting a new community or is looking to take your community to the next level, I will be able to help you prepare a roadmap / strategy using which you can move forward. I will be able to help your community with my 3+ years of experience in running communities at different scale.
+                  </div>
+                  <a href="#" class="link-primary" style="text-decoration: none"></a>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="d-flex flex-column justify-content-around align-items-center rounded p-3">
+                  <img src="/assets/images/icons/dev.png">
+                  <h4 class="mt-3">Resume Review</h4>
+                  <div class="text-muted my-2">
+                    You can reach out to me if you would like to get your resume reviewed for free. Over the last 15 months, I have reviewed 100s of resumes for software engineers, leading to them getting shortlisted at most of the product companies. I can also help you re-write your resume based on the requirements.
+                  </div>
+                  <a href="#" class="link-primary" style="text-decoration: none"></a>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="d-flex flex-column justify-content-around align-items-center rounded p-3">
+                  <img src="/assets/images/icons/getstarted.png">
+                  <h4 class="mt-3">Getting Started</h4>
+                  <div class="text-muted my-2">
+                    If you're a beginner in the field of technology or is trying to understand the various career paths available for you, I might be able to help you. You can reach out to me directly via any of the messaging platforms or can schedule a call on my calendar for the same. You can also reach out if you're stuck with something.
+                  </div>
+                  <a href="#" class="link-primary" style="text-decoration: none"></a>
+                </div>
+              </div>
+          </div>
+        </div>
+    </section>
+  </main>
+
+  <!--Contact-->
+
+  <main class="section">
+    <div class="main-content">
+      <section>
+        <h3 class="main-subheading" id="contact">Contact</h3>
+        <hr>
+        <div class="button-row">
+          <a href="https://linkedin.com/in/aravind1444" target="_blank"><span class="button">LinkedIn</span></a>
+          <a href="mailto:hello@aravind.me" target="_blank"><span class="button">Mail</span></a>
+          <a href="https://github.com/Aravind1444" target="_blank"><span class="button">GitHub</span></a>
+          <a href="https://twitter.com/AravindV1444" target="_blank"><span class="button">Twitter</span></a>
+          <a href="http://resume.aravind.me" target="_blank"><span class="button">Resume</span></a>
+          <a href="https://calendly.com/aravindvenugopal/oneonone" target="_blank"><span class="button">Talk</span></a>
+        </div>
+      </section>
     </div>
-    <div class="time-adjustment-buttons">
-      <button id="addThirtySecondsButton">+ 30s</button>
-      <button id="addOneMinuteButton">+ 1m</button>
-      <button id="removeThirtySecondsButton">- 30s</button>
-      <button id="removeOneMinuteButton">- 1m</button>
+  </main>
+
+
+  <br>
+   
+  <footer class="footer">
+    <div class="footer-text">
+      <span>Designed with ❤️</span>
+      <br>
+      <span>No © issues! Feel free to copy 🙂</span>
     </div>
-  </div>
+  </footer>
+  
+  <!--Bootstrap JS dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+    
+    <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "emf9xft0df");
+</script>
 
-  <audio id="bellSound" src="https://www.soundjay.com//clock/sounds/alarm-clock-01.mp3"></audio>
-
-  <script>
-    const fullscreenTimerDisplay = document.getElementById('fullscreenTimerDisplay');
-    const hoursInput = document.getElementById('hours');
-    const minutesInput = document.getElementById('minutes');
-    const secondsInput = document.getElementById('seconds');
-    const startButton = document.getElementById('startButton');
-    const pauseButton = document.getElementById('pauseButton');
-    const resumeButton = document.getElementById('resumeButton');
-    const stopButton = document.getElementById('stopButton');
-    const bellButton = document.getElementById('bellButton');
-    const bellButtonFirst = document.getElementById('bellButtonFirst');
-    const bellSound = document.getElementById('bellSound');
-    const app = document.getElementById('app');
-    const fullscreenTimer = document.getElementById('fullscreenTimer');
-    const progressCircle = document.getElementById('progressCircle');
-    const hoursLabel = document.getElementById('hoursLabel');
-    const minutesLabel = document.getElementById('minutesLabel');
-    const secondsLabel = document.getElementById('secondsLabel');
-    const fullscreenButton = document.getElementById('fullscreenButton');
-    const exitButton = document.getElementById('exitButton');
-    const addThirtySecondsButton = document.getElementById('addThirtySecondsButton');
-    const addOneMinuteButton = document.getElementById('addOneMinuteButton');
-    const removeThirtySecondsButton = document.getElementById('removeThirtySecondsButton');
-    const removeOneMinuteButton = document.getElementById('removeOneMinuteButton');
-
-    let totalSeconds = 0;
-    let timerId;
-    let isPaused = false;
-    let isBellPlaying = false;
-
-    function startTimer() {
-      const hours = parseInt(hoursInput.value) || 0;
-      const minutes = parseInt(minutesInput.value) || 0;
-      const seconds = parseInt(secondsInput.value) || 0;
-
-      totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-      if (totalSeconds <= 0) {
-        alert('Please enter a valid time.');
-        return;
-      }
-
-      startButton.disabled = true;
-      pauseButton.disabled = false;
-      stopButton.disabled = false;
-
-      timerId = setInterval(updateTimer, 1000);
-      showFullscreenTimer();
-    }
-
-    function updateTimer() {
-      if (totalSeconds <= 0) {
-        clearInterval(timerId);
-        playBellSound();
-        resetTimer();
-        document.getElementById('timesUpMessage').style.display = 'block';
-        return;
-      }
-
-      if (!isPaused) {
-        totalSeconds--;
-        updateProgressCircle();
-        displayTime();
-      }
-    }
-
-    function displayTime() {
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-
-      // Logic to determine the smallest non-zero time unit
-      let smallestTimeUnit;
-      if (hours > 0) {
-        smallestTimeUnit = ' h';
-      } else if (minutes > 0) {
-        smallestTimeUnit = ' m';
-      } else {
-        smallestTimeUnit = ' s';
-      }
-
-      // Construct the formatted time string with the smallest unit
-      const formattedTime = `${hours > 0 ? padZero(hours) + 'h ' : ' '}${minutes > 0 ? padZero(minutes) + 'm ' : ' '}${seconds > 0 ? padZero(seconds) + 's' : ' '}`;
-      fullscreenTimerDisplay.textContent = formattedTime;
-
-      // Hide labels that don't have corresponding time values
-      hoursLabel.style.display = hours > 0 ? 'inline' : 'none';
-      minutesLabel.style.display = minutes > 0 ? 'inline' : 'none';
-      secondsLabel.style.display = seconds > 0 ? 'inline' : 'none';
-    }
-
-    function updateProgressCircle() {
-      const totalDuration = parseInt(hoursInput.value) * 3600 + parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
-      const progress = ((totalDuration - totalSeconds) / totalDuration) * 1000;
-      progressCircle.style.strokeDashoffset = 1000 - progress;
-    }
-
-
-    function padZero(number) {
-      return number.toString().padStart(2, '0');
-    }
-
-    function pauseTimer() {
-      isPaused = true;
-      pauseButton.disabled = true;
-      resumeButton.disabled = false;
-    }
-
-    function resumeTimer() {
-      isPaused = false;
-      pauseButton.disabled = false;
-      resumeButton.disabled = true;
-    }
-
-    function stopTimer() {
-      clearInterval(timerId);
-      resetTimer();
-      hideFullscreenTimer();
-      location.reload();
-    }
-
-    function resetTimer() {
-      totalSeconds = 0;
-      isPaused = false;
-      displayTime();
-      updateProgressCircle();
-      startButton.disabled = false;
-      pauseButton.disabled = true;
-      resumeButton.disabled = true;
-      stopButton.disabled = true;
-
-    }
-
-    function playBellSound() {
-      if (!isBellPlaying) {
-        isBellPlaying = true;
-        bellSound.currentTime = 0;
-        bellSound.play();
-        bellButton.textContent = 'Stop Sound';
-        bellButtonFirst.textContent = 'Stop Sound';
-        setTimeout(() => {
-          stopBellSound();
-        }, 3000);
-      }
-    }
-
-    function stopBellSound() {
-      isBellPlaying = false;
-      bellSound.pause();
-      bellSound.currentTime = 0;
-      bellButton.textContent = 'Play Sound';
-      bellButtonFirst.textContent = 'Play Sound';
-    }
-
-    function stopTimer() {
-      clearInterval(timerId);
-      resetTimer();
-      hideFullscreenTimer();
-      stopBellSound();
-      location.reload();
-    }
-
-    function showFullscreenTimer() {
-      app.style.display = 'none';
-      fullscreenTimer.style.display = 'flex';
-    }
-
-    function hideFullscreenTimer() {
-      app.style.display = 'block';
-      fullscreenTimer.style.display = 'none';
-      location.reload();
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        if (fullscreenTimer.requestFullscreen) {
-          fullscreenTimer.requestFullscreen();
-        } else if (fullscreenTimer.webkitRequestFullscreen) { // Safari
-          fullscreenTimer.webkitRequestFullscreen();
-        } else if (fullscreenTimer.msRequestFullscreen) { // IE/Edge
-          fullscreenTimer.msRequestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { // Safari
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { // IE/Edge
-          document.msExitFullscreen();
-        }
-      }
-    }
-    function addThirtySeconds() {
-      totalSeconds += 30;
-      displayTime();
-      updateProgressCircle();
-    }
-
-    function addOneMinute() {
-      totalSeconds += 60;
-      displayTime();
-      updateProgressCircle();
-    }
-
-    function removeThirtySeconds() {
-      if (totalSeconds >= 30) {
-        totalSeconds -= 30;
-        displayTime();
-        updateProgressCircle();
-      }
-    }
-
-    function removeOneMinute() {
-      if (totalSeconds >= 60) {
-        totalSeconds -= 60;
-        displayTime();
-        updateProgressCircle();
-      }
-    }
-
-    addThirtySecondsButton.addEventListener('click', addThirtySeconds);
-    addOneMinuteButton.addEventListener('click', addOneMinute);
-    removeThirtySecondsButton.addEventListener('click', removeThirtySeconds);
-    removeOneMinuteButton.addEventListener('click', removeOneMinute);
-
-    startButton.addEventListener('click', startTimer);
-    pauseButton.addEventListener('click', pauseTimer);
-    resumeButton.addEventListener('click', resumeTimer);
-    stopButton.addEventListener('click', stopTimer);
-    bellButton.addEventListener('click', isBellPlaying ? stopBellSound : playBellSound);
-    bellButtonFirst.addEventListener('click', isBellPlaying ? stopBellSound : playBellSound);
-    fullscreenButton.addEventListener('click', toggleFullscreen);
-    exitButton.addEventListener('click', hideFullscreenTimer);
-  </script>
 </body>
 
 </html>
