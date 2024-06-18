@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,6 +19,7 @@
             margin: 0;
             overflow: hidden;
         }
+
         .container {
             display: flex;
             align-items: center;
@@ -29,10 +31,12 @@
             max-width: 90%;
             flex-wrap: wrap;
         }
+
         .text-content {
             flex: 1;
             text-align: left;
         }
+
         h1 {
             font-family: 'Pacifico', cursive;
             font-size: 3em;
@@ -40,11 +44,13 @@
             margin-bottom: 20px;
             animation: bounce 2s infinite;
         }
+
         p {
             font-size: 1.2em;
             color: #666;
             margin: 10px 0;
         }
+
         .confetti {
             position: absolute;
             width: 10px;
@@ -53,19 +59,46 @@
             animation: fall 3s infinite;
             top: 0;
         }
+
         @keyframes fall {
-            0% { transform: translateY(0) rotate(0); }
-            100% { transform: translateY(100vh) rotate(360deg); }
+            0% {
+                transform: translateY(0) rotate(0);
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-30px); }
-            60% { transform: translateY(-15px); }
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-30px);
+            }
+
+            60% {
+                transform: translateY(-15px);
+            }
         }
+
         .button {
             display: inline-block;
             padding: 10px 20px;
@@ -78,18 +111,22 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         .button:hover {
             background-color: #0056b3;
         }
+
         .image-content {
             flex: 1;
             text-align: center;
         }
+
         .image-content img {
             max-width: 80%;
             height: auto;
             border-radius: 10px;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -103,6 +140,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .modal-content {
             background-color: #fefefe;
             padding: 20px;
@@ -116,57 +154,79 @@
             flex-direction: column;
             align-items: center;
         }
+
         .modal-header {
             width: 100%;
             display: flex;
             justify-content: flex-end;
         }
+
         .close {
             color: #aaa;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
         }
+
         .close:hover,
         .close:focus {
             color: black;
             text-decoration: none;
         }
+
         .modal-body {
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: left;
         }
+
         .modal-text {
             flex: 1;
         }
+
         .modal-image {
             max-width: 150px;
             height: auto;
             margin-left: 20px;
         }
+
+        .modal-image1 {
+            max-width: 100%;
+            height: auto;
+            margin: 20px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
                 text-align: center;
             }
+
             .text-content {
                 text-align: center;
             }
+
             .image-content {
                 margin-bottom: 20px;
             }
+
             .modal-content {
                 flex-direction: column;
             }
+
             .modal-image {
                 margin-left: 0;
                 margin-top: 20px;
             }
+
+            .modal-image1 {
+                margin: 20px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="image-content">
@@ -187,9 +247,23 @@
             </div>
             <div class="modal-body">
                 <div class="modal-text">
-                    <p>Hey, I wanted to remind you to let go of your worries. It's time to beast and live your life in color! <br><br>And Aravind said that he's really grateful for you being there, and for all of the support as well.<br><br>- The Little Birdie</p>
+                    <p>Hey, I wanted to remind you to let go of your worries. It's time to beast and live your life in
+                        color! <br><br>And Aravind said that he's really grateful for you being there, and for all of
+                        the support as well.<br><br>- A Little Birdie</p>
                 </div>
                 <img src="/assets/images/birdie.png" alt="a little birdie" class="modal-image">
+            </div>
+            <button class="button" onclick="showModal1()">Remember This?</button>
+        </div>
+    </div>
+
+    <div id="myModal1" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal1()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <img src="/assets/images/pics.png" alt="a little birdie" class="modal-image1">
             </div>
         </div>
     </div>
@@ -222,11 +296,27 @@
             document.getElementById('myModal').style.display = 'none';
         }
 
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == document.getElementById('myModal')) {
                 closeModal();
             }
         }
+
+
+        function showModal1() {
+            document.getElementById('myModal1').style.display = 'flex';
+        }
+
+        function closeModal1() {
+            document.getElementById('myModal1').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('myModal1')) {
+                closeModal1();
+            }
+        }
     </script>
 </body>
+
 </html>
