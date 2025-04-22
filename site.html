@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Site Generator V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Basic styles for better presentation */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #editor {
+            min-height: 250px; /* Adjusted height */
+        }
+        #content-display-area { /* Renamed for clarity */
+             /* Add some basic styling for rendered markdown */
+            padding: 1rem;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            border-radius: 0.375rem; /* rounded-md */
+            background-color: #f7fafc; /* gray-100 */
+            min-height: 300px;
+        }
+        /* Style basic markdown elements */
+        #content-display-area h1, #content-display-area h2, #content-display-area h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; }
+        #content-display-area h1 { font-size: 1.875rem; } /* text-3xl */
+        #content-display-area h2 { font-size: 1.5rem; } /* text-2xl */
+        #content-display-area h3 { font-size: 1.25rem; } /* text-xl */
+        #content-display-area p { margin-bottom: 1em; line-height: 1.6; }
+        #content-display-area ul, #content-display-area ol { margin-left: 1.5em; margin-bottom: 1em; list-style: revert; }
+        #content-display-area a { color: #2563eb; text-decoration: underline; } /* blue-600 */
+        #content-display-area pre { background-color: #edf2f7; padding: 1em; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 1em;} /* gray-200 */
+        #content-display-area code { font-family: monospace; background-color: #edf2f7; padding: 0.2em 0.4em; border-radius: 0.25rem; } /* gray-200 */
+        #content-display-area pre code { background-color: transparent; padding: 0; border-radius: 0; }
+        #content-display-area blockquote { border-left: 4px solid #cbd5e0; padding-left: 1em; margin-left: 0; font-style: italic; color: #718096; } /* border-gray-400, text-gray-600 */
+
+        /* Style for displayed heading, tagline, image */
+        #display-heading {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            color: #1f2937; /* gray-800 */
+        }
+         #display-tagline {
+            font-size: 1.125rem; /* text-lg */
+            color: #4b5563; /* gray-600 */
+            margin-bottom: 1.5rem;
+        }
+        #display-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            background-color: #e5e7eb; /* gray-200 for placeholder bg */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+
+        <div id="editor-container">
+            <h1 class="text-2xl font-bold mb-4 text-center text-gray-700">Mini Site Generator</h1>
+            <div class="mb-4">
+                <label for="heading-input" class="block text-sm font-medium text-gray-700 mb-1">Heading:</label>
+                <input type="text" id="heading-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter site heading">
+            </div>
+            <div class="mb-4">
+                <label for="tagline-input" class="block text-sm font-medium text-gray-700 mb-1">Tagline:</label>
+                <input type="text" id="tagline-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter site tagline (optional)">
+            </div>
+            <div class="mb-4">
+                <label for="image-url-input" class="block text-sm font-medium text-gray-700 mb-1">Hero Image URL:</label>
+                <input type="url" id="image-url-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="https://example.com/image.jpg (optional)">
+            </div>
+
+            <div class="mb-4">
+                <label for="editor" class="block text-sm font-medium text-gray-700 mb-1">Main Content (Markdown supported):</label>
+                <textarea id="editor" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Type your main text or paste Markdown here..."></textarea>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">The URL will update automatically as you type. Share the URL to share your content.</p>
+             <button id="copy-editor-url-button" class="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Copy Shareable URL
+            </button>
+             <div id="copy-editor-message" class="text-sm text-green-600 mt-2 hidden">URL copied to clipboard!</div>
+        </div>
+
+        <div id="content-display-container" class="hidden">
+            <h1 id="display-heading" class="text-center"></h1>
+            <p id="display-tagline" class="text-center"></p>
+            <img id="display-image" src="" alt="Hero Image" class="mx-auto hidden" onerror="this.style.display='none'; console.warn('Image failed to load:', this.src)"> <hr class="my-6 border-gray-300"> <p class="text-sm font-medium text-gray-700 mb-2"></p>
+            <div id="content-display-area">
+                </div>
+             <button id="copy-display-url-button" class="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Copy Shareable URL
+            </button>
+             <div id="copy-display-message" class="text-sm text-green-600 mt-2 hidden">URL copied to clipboard!</div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const editor = document.getElementById('editor');
+        const headingInput = document.getElementById('heading-input');
+        const taglineInput = document.getElementById('tagline-input');
+        const imageUrlInput = document.getElementById('image-url-input');
+        const contentDisplayArea = document.getElementById('content-display-area'); // Renamed div
+        const displayHeading = document.getElementById('display-heading');
+        const displayTagline = document.getElementById('display-tagline');
+        const displayImage = document.getElementById('display-image');
+        const editorContainer = document.getElementById('editor-container');
+        const contentDisplayContainer = document.getElementById('content-display-container');
+        const copyEditorUrlButton = document.getElementById('copy-editor-url-button');
+        const copyEditorMessage = document.getElementById('copy-editor-message');
+        const copyDisplayUrlButton = document.getElementById('copy-display-url-button');
+        const copyDisplayMessage = document.getElementById('copy-display-message');
+
+        let debounceTimer;
+        const DEBOUNCE_DELAY = 500; // ms
+
+        // --- Encoding/Decoding ---
+
+        // Encodes text to a URL-safe Base64 string
+        function safeEncode(str) {
+            try {
+                return btoa(unescape(encodeURIComponent(str)));
+            } catch (e) {
+                console.error("Encoding failed:", e);
+                return '';
+            }
+        }
+
+        // Decodes a URL-safe Base64 string back to text
+        function safeDecode(base64Str) {
+            try {
+                return decodeURIComponent(escape(atob(base64Str)));
+            } catch (e) {
+                console.error("Decoding failed:", e);
+                return null;
+            }
+        }
+
+        // --- Rendering ---
+
+        function renderPage(data) {
+            // Check if data is valid
+            if (!data || typeof data !== 'object') {
+                 console.error("Invalid data for rendering:", data);
+                 // Potentially show an error message to the user or revert to editor
+                 showEditorView(); // Revert to editor if data is bad
+                 return;
+            }
+
+            // Set Heading
+            displayHeading.textContent = data.heading || 'Untitled'; // Default heading
+
+            // Set Tagline
+            if (data.tagline) {
+                displayTagline.textContent = data.tagline;
+                displayTagline.classList.remove('hidden');
+            } else {
+                displayTagline.classList.add('hidden');
+            }
+
+            // Set Image
+            if (data.imageUrl) {
+                displayImage.src = data.imageUrl;
+                 // Reset display before setting src in case of previous error
+                displayImage.style.display = ''; // Use style.display instead of class for onerror compatibility
+                displayImage.classList.remove('hidden');
+            } else {
+                displayImage.classList.add('hidden');
+                displayImage.style.display = 'none'; // Ensure it's hidden if no URL
+            }
+
+            // Render Markdown Content
+            if (data.content && typeof marked !== 'undefined') {
+                contentDisplayArea.innerHTML = marked.parse(data.content);
+            } else if (data.content) {
+                 // Fallback if marked.js fails or isn't loaded - display plain text
+                 contentDisplayArea.textContent = data.content;
+            }
+             else {
+                contentDisplayArea.innerHTML = '<p class="text-gray-500 italic">No main content provided.</p>'; // Placeholder if no content
+            }
+
+            // Show the display container and hide the editor
+            editorContainer.classList.add('hidden');
+            contentDisplayContainer.classList.remove('hidden');
+        }
+
+        // --- URL Handling & Data Management ---
+
+        function updateUrlHashFromEditor() {
+            // Gather data from input fields
+            const data = {
+                heading: headingInput.value.trim(),
+                tagline: taglineInput.value.trim(),
+                imageUrl: imageUrlInput.value.trim(),
+                content: editor.value
+            };
+
+            // Convert data object to JSON string
+            const jsonString = JSON.stringify(data);
+
+            // Encode the JSON string
+            const encodedContent = safeEncode(jsonString);
+
+            // Update URL hash using replaceState to avoid history pollution
+            history.replaceState(null, '', '#' + encodedContent);
+        }
+
+        function getDataFromUrl() {
+            if (window.location.hash && window.location.hash.length > 1) {
+                const encodedContent = window.location.hash.substring(1);
+                const decodedJson = safeDecode(encodedContent);
+
+                if (decodedJson) {
+                    try {
+                        // Parse the JSON string back into an object
+                        return JSON.parse(decodedJson);
+                    } catch (e) {
+                        console.error("JSON Parsing failed:", e);
+                        return null; // Indicate failure
+                    }
+                }
+            }
+            return null; // No valid data in URL
+        }
+
+
+        // --- View Switching ---
+
+        function showEditorView() {
+             // Clear editor fields before showing
+             headingInput.value = '';
+             taglineInput.value = '';
+             imageUrlInput.value = '';
+             editor.value = '';
+             // Show editor, hide display
+             contentDisplayContainer.classList.add('hidden');
+             editorContainer.classList.remove('hidden');
+             headingInput.focus(); // Focus the first input
+        }
+
+        // --- Event Listeners ---
+
+        // Listen to input on all editor fields
+        [headingInput, taglineInput, imageUrlInput, editor].forEach(inputElement => {
+            inputElement.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateUrlHashFromEditor, DEBOUNCE_DELAY);
+            });
+        });
+
+        // Function to handle copying URL
+        function copyUrlToClipboard(button, messageElement) {
+             const urlToCopy = window.location.href;
+             navigator.clipboard.writeText(urlToCopy).then(() => {
+                 messageElement.classList.remove('hidden');
+                 setTimeout(() => {
+                     messageElement.classList.add('hidden');
+                 }, 3000); // Hide message after 3 seconds
+             }).catch(err => {
+                 console.error('Failed to copy URL: ', err);
+                 messageElement.textContent = 'Failed to copy!'; // Show error briefly
+                 messageElement.classList.remove('hidden','text-green-600');
+                 messageElement.classList.add('text-red-600');
+                  setTimeout(() => {
+                     messageElement.classList.add('hidden');
+                     messageElement.textContent = 'URL copied to clipboard!'; // Reset message text
+                     messageElement.classList.remove('text-red-600');
+                     messageElement.classList.add('text-green-600');
+                 }, 3000);
+             });
+        }
+
+        // Add listeners to both copy buttons
+        copyEditorUrlButton.addEventListener('click', () => copyUrlToClipboard(copyEditorUrlButton, copyEditorMessage));
+        copyDisplayUrlButton.addEventListener('click', () => copyUrlToClipboard(copyDisplayUrlButton, copyDisplayMessage));
+
+
+        // --- Initialization ---
+
+        function initialize() {
+            const initialData = getDataFromUrl();
+            if (initialData !== null) {
+                // Data found in URL hash -> Render the page
+                renderPage(initialData);
+            } else {
+                // No data in URL hash or decoding/parsing failed -> Show editor
+                showEditorView();
+            }
+        }
+
+        // Handle hash changes (e.g., back/forward buttons, manual hash change)
+        window.addEventListener('hashchange', initialize);
+
+        // Initial load
+        initialize();
+
+    </script>
+
+</body>
+</html>
