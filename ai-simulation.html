@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generative‑AI Situation Simulator (1 000 Personas)</title>
+<style>
+  :root {
+    --primary: #0d6efd;
+    --danger: #dc3545;
+    --success: #198754;
+    --bg: #f8f9fa;
+  }
+  body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #212529; line-height: 1.5; }
+  .container { max-width: 1100px; margin: auto; padding: 2rem; }
+  h1 { margin-top: 0; margin-bottom: 1rem; font-size: 1.85rem; }
+  label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+  input[type="password"], textarea { width: 100%; padding: 0.55rem; border: 1px solid #ced4da; border-radius: 0.375rem; font-size: 1rem; }
+  textarea { resize: vertical; min-height: 6rem; }
+  button { margin-top: 1rem; padding: 0.65rem 1.4rem; font-size: 1rem; border: none; border-radius: 0.375rem; background: var(--primary); color: #fff; cursor: pointer; }
+  button:disabled { background: #6c757d; cursor: not-allowed; }
+  progress { width: 100%; height: 1rem; margin: 0.5rem 0 1rem; }
+  pre { white-space: pre-wrap; background: #fff; border: 1px solid #ced4da; border-radius: 0.375rem; padding: 1rem; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 2rem; }
+  th, td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #dee2e6; text-align: left; font-size: 0.83rem; }
+  th { background: #e9ecef; font-weight: 600; }
+  tr:hover { background: #f1f3f5; }
+  .status-ok { color: var(--success); font-weight: 600; }
+  .status-err { color: var(--danger); font-weight: 600; }
+  #detailPane { display:none; margin-top: -1rem; }
+  #search { margin-bottom: 0.75rem; padding: 0.45rem 0.6rem; width: 100%; border: 1px solid #ced4da; border-radius: 0.375rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Generative‑AI Situation Simulator</h1>
+
+  <label>Groq API Key
+    <input type="password" id="apiKey" placeholder="sk-..." />
+  </label>
+
+  <label>Describe the situation / objective *</label>
+  <textarea id="objective" placeholder="e.g. How will people react to a 10‑hour work‑day mandate in winter?\n"></textarea>
+
+  <button id="runBtn">Run 1 000‑Persona Simulation</button>
+
+  <div id="progressWrapper" style="display:none;">
+    <p id="progressText">Preparing…</p>
+    <progress id="progressBar" value="0" max="1"></progress>
+  </div>
+
+  <h2>Final Summary</h2>
+  <pre id="finalSummary">—</pre>
+
+  <h2>Persona Results</h2>
+  <input id="search" placeholder="Search / filter… (any field)" />
+  <table id="resultsTable">
+    <thead>
+      <tr><th>#</th><th>Age</th><th>Gender</th><th>Region</th><th>Ideology</th><th>Profession</th><th>Status</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <pre id="detailPane"></pre>
+</div>
+
+<script>
+/* === CONFIG === */
+const MODEL_SIM          = "llama-3.1-8b-instant";      // first‑layer behaviour simulation
+const MODEL_SUMMARY      = "llama-3.3-70b-versatile";   // summariser (128 K ctx)
+const MAX_TOKENS_SIM     = 350;   // output per persona simulation
+const MAX_TOKENS_PERS_SUM= 80;    // compress ~50 tokens
+const MAX_TOKENS_FINAL   = 8000;  // final output
+const CONCURRENCY_SIM    = 250;   // 250 req / 5 s
+const CONCURRENCY_SUM    = 100;   // per‑persona summary batch
+const TEMP_SIM           = 1.0;   // higher randomness for unique behaviours
+const TEMP_SUM           = 0.3;   // keep summaries grounded
+const PERSONA_COUNT      = 1000;
+const CURRENT_DATE       = "May 2025";
+
+/* === UI ELEMENTS === */
+const $ = id => document.getElementById(id);
+const apiKeyInput = $("apiKey");
+const objectiveArea = $("objective");
+const runBtn = $("runBtn");
+const progWrap = $("progressWrapper");
+const progText = $("progressText");
+const progBar = $("progressBar");
+const summaryBox = $("finalSummary");
+const tableBody = document.querySelector("#resultsTable tbody");
+const detailPane = $("detailPane");
+const searchBox = $("search");
+
+/* === UTILITIES === */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const rnd = arr => arr[Math.floor(Math.random()*arr.length)];
+
+/* === PERSONA GENERATION === */
+function buildPersonas(){
+  const regions    = ["Northeast","Midwest","South","West"];
+  const genders    = ["male","female","non‑binary"];
+  const ethnicities= ["White","Black","Hispanic","Asian","Native American","Mixed"];
+  const ideologies = ["very liberal","liberal","moderate","conservative","very conservative"];
+  const professions= ["student","software engineer","nurse","teacher","retail worker","factory worker","unemployed","small‑business owner","manager","retiree"];
+  const educLevels = ["high school","some college","associate degree","bachelor's","master's","doctorate"];
+  const incomes    = ["<25 k","25–50 k","50–75 k","75–100 k","100–150 k","150 k+"];
+  const marital    = ["single","married","divorced","widowed"];
+
+  const personas=[];
+  for(let i=0;i<PERSONA_COUNT;i++){
+    // age distribution
+    let age;
+    const r=Math.random();
+    if(r<0.24) age=10+Math.floor(Math.random()*13);
+    else if(r<0.74) age=23+Math.floor(Math.random()*28);
+    else age=51+Math.floor(Math.random()*30);
+    personas.push({
+      id:i+1,
+      age,
+      gender:rnd(genders),
+      region:rnd(regions),
+      ethnicity:rnd(ethnicities),
+      ideology:rnd(ideologies),
+      profession:rnd(professions),
+      education:rnd(educLevels),
+      income:rnd(incomes),
+      marital:rnd(marital),
+      simText:null,
+      persSummary:null,
+      status:'pending'
+    });
+  }
+  return personas;
+}
+
+function personaSystemPrompt(p){
+  return `You are a U.S. resident in ${CURRENT_DATE} with these traits:\n- Age: ${p.age}\n- Gender: ${p.gender}\n- Region: ${p.region}\n- Ethnicity: ${p.ethnicity}\n- Political ideology: ${p.ideology}\n- Profession: ${p.profession}\n- Education: ${p.education}\n- Income: ${p.income}\n- Marital status: ${p.marital}\n\nWhen the scenario appears, respond in first person describing how **your behaviour** (emotions, reasoning, concrete actions over the first week) will evolve. Stay within ${MAX_TOKENS_SIM} tokens. Strictly stick to your persona traits and avoid generalisations. Focus on **your** unique perspective and actions, not those of others. You can share your expectations as well.`;
+}
+
+/* === API CALL === */
+async function groqChat(key, model, messages, maxTokens, temperature){
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
+    body:JSON.stringify({model,messages,max_tokens:maxTokens,temperature})
+  });
+  if(!res.ok) throw new Error(await res.text());
+  const data=await res.json();
+  return data.choices?.[0]?.message?.content||'';
+}
+
+/* === MAIN WORKFLOW === */
+runBtn.addEventListener('click',()=>{ if(!runBtn.disabled) start(); });
+
+async function start(){
+  const key = apiKeyInput.value.trim();
+  const objective = objectiveArea.value.trim();
+  if(!key||!objective){ alert('API key & objective required'); return; }
+
+  runBtn.disabled=true; summaryBox.textContent='Running…'; detailPane.style.display='none'; tableBody.innerHTML='';
+  progWrap.style.display='block';
+
+  const personas = buildPersonas();
+  window._personas = personas;
+  const totalSteps = PERSONA_COUNT + PERSONA_COUNT + 1;
+  progBar.max = totalSteps; progBar.value=0;
+
+  /* === Stage 1 : SIMULATION === */
+  progText.textContent='Stage 1/3 – Simulating behaviours…';
+  for(let i=0;i<PERSONA_COUNT;i+=CONCURRENCY_SIM){
+    const batch=personas.slice(i,i+CONCURRENCY_SIM);
+    await Promise.all(batch.map(async p=>{
+      try{
+        p.simText = (await groqChat(key,MODEL_SIM,[{role:'system',content:personaSystemPrompt(p)},{role:'user',content:objective}],MAX_TOKENS_SIM,TEMP_SIM)).trim();
+        p.status='done';
+      }catch(e){ p.status='error'; p.simText='(error) '+e.message; }
+      tableBody.insertAdjacentHTML('beforeend', rowHTML(p));
+      progBar.value++;
+    }));
+    await sleep(5000);
+  }
+
+  /* === Stage 2 : PER‑PERSONA SUMMARY === */
+  progText.textContent='Stage 2/3 – Compressing each persona view…';
+  for(let i=0;i<PERSONA_COUNT;i+=CONCURRENCY_SUM){
+    const batch=personas.slice(i,i+CONCURRENCY_SUM);
+    await Promise.all(batch.map(async p=>{
+      if(p.status!=='done'){ progBar.value++; return; }
+      try{
+        p.persSummary = (await groqChat(key,MODEL_SUMMARY,[{role:'system',content:'Summarise the behaviour in ≤100 tokens.'},{role:'user',content:p.simText}],MAX_TOKENS_PERS_SUM,TEMP_SUM)).trim();
+      }catch(e){ p.persSummary='(summary‑error) '+e.message; }
+      progBar.value++;
+    }));
+    await sleep(3000);
+  }
+
+  /* === Stage 3 : FINAL SYNTHESIS === */
+  progText.textContent='Stage 3/3 – Crafting master summary…';
+  const megaInput = personas.map(p=>`[${p.ideology}, ${p.age}, ${p.gender}, ${p.region}] ${p.persSummary}`).join('\n');
+  try{
+    const final = await groqChat(key,MODEL_SUMMARY,[{role:'system',content:'You are a principal strategist specialising in behavioural insights. Deliver a thorough (5000 - 8000 tokens) synthesis capturing dominant trends, minority views, emotional spectrum, segmentation cues, and actionable implications. Be as detailed as possible, while making it easier to follow'},{role:'user',content:megaInput}],MAX_TOKENS_FINAL,TEMP_SUM);
+    summaryBox.textContent=final.trim();
+  }catch(e){ summaryBox.textContent='Final summary failed: '+e.message; }
+  progBar.value=totalSteps; progText.textContent='Complete'; runBtn.disabled=false;
+}
+
+/* === TABLE / SEARCH / DETAILS === */
+function rowHTML(p){
+  return `<tr data-id="${p.id}"><td>${p.id}</td><td>${p.age}</td><td>${p.gender}</td><td>${p.region}</td><td>${p.ideology}</td><td>${p.profession}</td><td class="${p.status==='done'?'status-ok':'status-err'}">${p.status}</td></tr>`;
+}
+
+tableBody.addEventListener('click',e=>{
+  const tr=e.target.closest('tr'); if(!tr) return;
+  const p=window._personas.find(x=>x.id===parseInt(tr.dataset.id,10)); if(!p) return;
+  detailPane.textContent=`--- Persona #${p.id} (${p.age}, ${p.gender}, ${p.region}, ${p.ideology}) ---\n${p.simText}`;
+  detailPane.style.display='block';
+});
+
+searchBox.addEventListener('input',()=>{
+  const term=searchBox.value.trim().toLowerCase();
+  Array.from(tableBody.children).forEach(tr=>{ tr.style.display = term===''||tr.innerText.toLowerCase().includes(term) ? '' : 'none'; });
+});
+</script>
+</body>
+</html>
