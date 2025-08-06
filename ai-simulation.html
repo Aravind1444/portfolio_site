@@ -1,224 +1,1721 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Generative‑AI Situation Simulator (1 000 Personas)</title>
-<style>
-  :root {
-    --primary: #0d6efd;
-    --danger: #dc3545;
-    --success: #198754;
-    --bg: #f8f9fa;
-  }
-  body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #212529; line-height: 1.5; }
-  .container { max-width: 1100px; margin: auto; padding: 2rem; }
-  h1 { margin-top: 0; margin-bottom: 1rem; font-size: 1.85rem; }
-  label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-  input[type="password"], textarea { width: 100%; padding: 0.55rem; border: 1px solid #ced4da; border-radius: 0.375rem; font-size: 1rem; }
-  textarea { resize: vertical; min-height: 6rem; }
-  button { margin-top: 1rem; padding: 0.65rem 1.4rem; font-size: 1rem; border: none; border-radius: 0.375rem; background: var(--primary); color: #fff; cursor: pointer; }
-  button:disabled { background: #6c757d; cursor: not-allowed; }
-  progress { width: 100%; height: 1rem; margin: 0.5rem 0 1rem; }
-  pre { white-space: pre-wrap; background: #fff; border: 1px solid #ced4da; border-radius: 0.375rem; padding: 1rem; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 2rem; }
-  th, td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #dee2e6; text-align: left; font-size: 0.83rem; }
-  th { background: #e9ecef; font-weight: 600; }
-  tr:hover { background: #f1f3f5; }
-  .status-ok { color: var(--success); font-weight: 600; }
-  .status-err { color: var(--danger); font-weight: 600; }
-  #detailPane { display:none; margin-top: -1rem; }
-  #search { margin-bottom: 0.75rem; padding: 0.45rem 0.6rem; width: 100%; border: 1px solid #ced4da; border-radius: 0.375rem; }
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Persona Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #f3f4f6;
+            --accent: #fbbf24;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --background: #ffffff;
+            --surface: #f9fafb;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .header .subtitle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .header .subtitle span {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header .subtitle .advanced { color: var(--primary); }
+        .header .subtitle .behavioral { color: var(--accent); }
+        .header .subtitle .dynamic { color: var(--primary); }
+
+        .header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Progress indicator */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--background);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .card-header .icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--background);
+            transition: all 0.2s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .estimated-runtime {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Toggle buttons */
+        .toggle-group {
+            display: flex;
+            background: var(--secondary);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .toggle-btn.active {
+            background: var(--background);
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+        }
+
+        .toggle-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        /* Structured inputs */
+        .structured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            font-size: 14px;
+            font-weight: 400;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--border);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin: 32px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .personas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .persona-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .persona-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .persona-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .persona-id {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .persona-status {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .persona-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .persona-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .persona-detail .label {
+            color: var(--text-muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .persona-detail .value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--background);
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-item .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-item .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .response-section {
+            margin-top: 24px;
+        }
+
+        .response-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .response-content {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .summary-content {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 70vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .summary-content h1, .summary-content h2, .summary-content h3 {
+            color: var(--text-primary);
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .summary-content h1 { font-size: 18px; }
+        .summary-content h2 { font-size: 16px; }
+        .summary-content h3 { font-size: 15px; }
+
+        .summary-content p {
+            margin-bottom: 12px;
+        }
+
+        .summary-content strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .summary-content em {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .card {
+                padding: 24px 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .form-row .form-group {
+                margin-bottom: 24px;
+            }
+
+            .structured-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .personas-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-  <h1>Generative‑AI Situation Simulator</h1>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <div class="icon">🧠</div>
+                AI Persona Simulator
+            </h1>
+            <div class="subtitle">
+                <span class="advanced">Advanced</span>
+                <span>•</span>
+                <span class="behavioral">Behavioral Analysis</span>
+                <span>•</span>
+                <span class="dynamic">Dynamic Generation</span>
+            </div>
+            <p>Generate realistic persona responses and behavioral patterns using advanced AI models. Perfect for market research, policy analysis, and social impact studies.</p>
+        </div>
 
-  <label>Groq API Key
-    <input type="password" id="apiKey" placeholder="sk-..." />
-  </label>
+        <!-- Progress Dots -->
+        <div class="progress-dots">
+            <div class="progress-dot active" data-step="1"></div>
+            <div class="progress-dot" data-step="2"></div>
+            <div class="progress-dot" data-step="3"></div>
+            <div class="progress-dot" data-step="4"></div>
+        </div>
 
-  <label>Describe the situation / objective *</label>
-  <textarea id="objective" placeholder="e.g. How will people react to a 10‑hour work‑day mandate in winter?\n"></textarea>
+        <!-- API Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon">🔑</div>
+                <h2 class="card-title">API Configuration</h2>
+            </div>
+            <p class="card-subtitle">Connect your AI service provider</p>
+            
+            <div class="form-group">
+                <label for="apiKey">Groq API Key</label>
+                <input type="password" id="apiKey" placeholder="sk-..." />
+                <div class="input-hint">
+                    <span>🔒</span>
+                    Your API key is encrypted and stored securely
+                </div>
+            </div>
+        </div>
 
-  <button id="runBtn">Run 1 000‑Persona Simulation</button>
+        <!-- Scenario Setup -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon">🎯</div>
+                <h2 class="card-title">Scenario Setup</h2>
+            </div>
+            <p class="card-subtitle">Define your simulation objective</p>
+            
+            <div class="form-group">
+                <label for="scenario">Describe the situation or objective to simulate</label>
+                <textarea id="scenario" placeholder="Example: How will people react to a new 4-day work week policy?&#10;Or: What would be the public response to mandatory electric vehicle adoption by 2030?"></textarea>
+                <div class="input-hint">
+                    <span>💡</span>
+                    Pro tip: Be specific about demographics, timeframes, and context for better results
+                </div>
+            </div>
+        </div>
 
-  <div id="progressWrapper" style="display:none;">
-    <p id="progressText">Preparing…</p>
-    <progress id="progressBar" value="0" max="1"></progress>
-  </div>
+        <!-- Persona Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon">👥</div>
+                <h2 class="card-title">Persona Configuration</h2>
+            </div>
+            <p class="card-subtitle">Customize your simulation participants</p>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="personaCount">Number of Personas</label>
+                    <input type="number" id="personaCount" min="10" max="5000" value="100" />
+                    <div class="input-hint">/ 5,000 max</div>
+                </div>
+                <div class="form-group">
+                    <label>Estimated Runtime</label>
+                    <div class="estimated-runtime" id="estimatedRuntime">~2 minutes</div>
+                </div>
+            </div>
 
-  <h2>Final Summary</h2>
-  <pre id="finalSummary">—</pre>
+            <div class="toggle-group">
+                <button class="toggle-btn active" data-mode="natural">
+                    <span>✨</span>
+                    Natural Language
+                </button>
+                <button class="toggle-btn" data-mode="structured">
+                    <span>📊</span>
+                    Structured Parameters
+                </button>
+            </div>
 
-  <h2>Persona Results</h2>
-  <input id="search" placeholder="Search / filter… (any field)" />
-  <table id="resultsTable">
-    <thead>
-      <tr><th>#</th><th>Age</th><th>Gender</th><th>Region</th><th>Ideology</th><th>Profession</th><th>Status</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <pre id="detailPane"></pre>
-</div>
+            <!-- Natural Language Input -->
+            <div id="naturalInput" class="input-mode">
+                <div class="form-group">
+                    <label for="personaDescription">Describe the personas you want to generate</label>
+                    <textarea id="personaDescription" placeholder="Example: Generate a diverse mix of American adults, with emphasis on: • Tech workers aged 25-40 from urban areas (30%) • Retirees from Florida (20%) • College students (15%) • Blue-collar workers from the Midwest (25%) • Small business owners (10%) Include various political ideologies, income levels, and educational backgrounds."></textarea>
+                </div>
+            </div>
 
-<script>
-/* === CONFIG === */
-const MODEL_SIM          = "llama-3.1-8b-instant";      // first‑layer behaviour simulation
-const MODEL_SUMMARY      = "llama-3.3-70b-versatile";   // summariser (128 K ctx)
-const MAX_TOKENS_SIM     = 350;   // output per persona simulation
-const MAX_TOKENS_PERS_SUM= 80;    // compress ~50 tokens
-const MAX_TOKENS_FINAL   = 8000;  // final output
-const CONCURRENCY_SIM    = 250;   // 250 req / 5 s
-const CONCURRENCY_SUM    = 100;   // per‑persona summary batch
-const TEMP_SIM           = 1.0;   // higher randomness for unique behaviours
-const TEMP_SUM           = 0.3;   // keep summaries grounded
-const PERSONA_COUNT      = 1000;
-const CURRENT_DATE       = "May 2025";
+            <!-- Structured Input -->
+            <div id="structuredInput" class="input-mode hidden">
+                <div class="structured-grid">
+                    <div class="form-group">
+                        <label>Age Ranges</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="age-youth" checked>
+                                <label for="age-youth">18-25</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="age-young-adult" checked>
+                                <label for="age-young-adult">26-35</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="age-adult" checked>
+                                <label for="age-adult">36-50</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="age-senior" checked>
+                                <label for="age-senior">51-70</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="age-elderly">
+                                <label for="age-elderly">70+</label>
+                            </div>
+                        </div>
+                    </div>
 
-/* === UI ELEMENTS === */
-const $ = id => document.getElementById(id);
-const apiKeyInput = $("apiKey");
-const objectiveArea = $("objective");
-const runBtn = $("runBtn");
-const progWrap = $("progressWrapper");
-const progText = $("progressText");
-const progBar = $("progressBar");
-const summaryBox = $("finalSummary");
-const tableBody = document.querySelector("#resultsTable tbody");
-const detailPane = $("detailPane");
-const searchBox = $("search");
+                    <div class="form-group">
+                        <label>Regions</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="region-northeast" checked>
+                                <label for="region-northeast">Northeast</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="region-midwest" checked>
+                                <label for="region-midwest">Midwest</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="region-south" checked>
+                                <label for="region-south">South</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="region-west" checked>
+                                <label for="region-west">West</label>
+                            </div>
+                        </div>
+                    </div>
 
-/* === UTILITIES === */
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
-const rnd = arr => arr[Math.floor(Math.random()*arr.length)];
+                    <div class="form-group">
+                        <label>Professions</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-tech" checked>
+                                <label for="prof-tech">Tech/IT</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-healthcare" checked>
+                                <label for="prof-healthcare">Healthcare</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-education" checked>
+                                <label for="prof-education">Education</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-business" checked>
+                                <label for="prof-business">Business</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-service" checked>
+                                <label for="prof-service">Service</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="prof-student" checked>
+                                <label for="prof-student">Student</label>
+                            </div>
+                        </div>
+                    </div>
 
-/* === PERSONA GENERATION === */
-function buildPersonas(){
-  const regions    = ["Northeast","Midwest","South","West"];
-  const genders    = ["male","female","non‑binary"];
-  const ethnicities= ["White","Black","Hispanic","Asian","Native American","Mixed"];
-  const ideologies = ["very liberal","liberal","moderate","conservative","very conservative"];
-  const professions= ["student","software engineer","nurse","teacher","retail worker","factory worker","unemployed","small‑business owner","manager","retiree"];
-  const educLevels = ["high school","some college","associate degree","bachelor's","master's","doctorate"];
-  const incomes    = ["<25 k","25–50 k","50–75 k","75–100 k","100–150 k","150 k+"];
-  const marital    = ["single","married","divorced","widowed"];
+                    <div class="form-group">
+                        <label>Political Ideologies</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="pol-very-liberal" checked>
+                                <label for="pol-very-liberal">Very Liberal</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="pol-liberal" checked>
+                                <label for="pol-liberal">Liberal</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="pol-moderate" checked>
+                                <label for="pol-moderate">Moderate</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="pol-conservative" checked>
+                                <label for="pol-conservative">Conservative</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="pol-very-conservative" checked>
+                                <label for="pol-very-conservative">Very Conservative</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-  const personas=[];
-  for(let i=0;i<PERSONA_COUNT;i++){
-    // age distribution
-    let age;
-    const r=Math.random();
-    if(r<0.24) age=10+Math.floor(Math.random()*13);
-    else if(r<0.74) age=23+Math.floor(Math.random()*28);
-    else age=51+Math.floor(Math.random()*30);
-    personas.push({
-      id:i+1,
-      age,
-      gender:rnd(genders),
-      region:rnd(regions),
-      ethnicity:rnd(ethnicities),
-      ideology:rnd(ideologies),
-      profession:rnd(professions),
-      education:rnd(educLevels),
-      income:rnd(incomes),
-      marital:rnd(marital),
-      simText:null,
-      persSummary:null,
-      status:'pending'
-    });
-  }
-  return personas;
-}
+                <div class="form-group">
+                    <label for="additionalParams">Additional Parameters (Optional)</label>
+                    <textarea id="additionalParams" placeholder="Add any specific requirements, such as income levels, education levels, ethnicities, or other demographic factors..." rows="3"></textarea>
+                </div>
+            </div>
 
-function personaSystemPrompt(p){
-  return `You are a U.S. resident in ${CURRENT_DATE} with these traits:\n- Age: ${p.age}\n- Gender: ${p.gender}\n- Region: ${p.region}\n- Ethnicity: ${p.ethnicity}\n- Political ideology: ${p.ideology}\n- Profession: ${p.profession}\n- Education: ${p.education}\n- Income: ${p.income}\n- Marital status: ${p.marital}\n\nWhen the scenario appears, respond in first person describing how **your behaviour** (emotions, reasoning, concrete actions over the first week) will evolve. Stay within ${MAX_TOKENS_SIM} tokens. Strictly stick to your persona traits and avoid generalisations. Focus on **your** unique perspective and actions, not those of others. You can share your expectations as well.`;
-}
+            <button id="runSimulation" class="btn btn-primary btn-full">
+                <span>▶️</span>
+                Run Simulation
+            </button>
+        </div>
 
-/* === API CALL === */
-async function groqChat(key, model, messages, maxTokens, temperature){
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-    method:"POST",
-    headers:{"Content-Type":"application/json","Authorization":`Bearer ${key}`},
-    body:JSON.stringify({model,messages,max_tokens:maxTokens,temperature})
-  });
-  if(!res.ok) throw new Error(await res.text());
-  const data=await res.json();
-  return data.choices?.[0]?.message?.content||'';
-}
+        <!-- Progress Card -->
+        <div id="progressCard" class="card hidden">
+            <div class="card-header">
+                <div class="icon">⏳</div>
+                <h2 class="card-title">Simulation Progress</h2>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div id="progressText" class="progress-text">Initializing...</div>
+            </div>
+        </div>
 
-/* === MAIN WORKFLOW === */
-runBtn.addEventListener('click',()=>{ if(!runBtn.disabled) start(); });
+        <!-- Results Card -->
+        <div id="resultsCard" class="card hidden">
+            <div class="card-header">
+                <div class="icon">📊</div>
+                <h2 class="card-title">Simulation Results</h2>
+            </div>
+            
+            <div class="results-actions mb-4">
+                <button id="exportPdf" class="btn btn-primary">
+                    <span>📄</span>
+                    Export PDF
+                </button>
+                <button id="viewSummary" class="btn btn-secondary">
+                    <span>📋</span>
+                    View Summary
+                </button>
+            </div>
 
-async function start(){
-  const key = apiKeyInput.value.trim();
-  const objective = objectiveArea.value.trim();
-  if(!key||!objective){ alert('API key & objective required'); return; }
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchPersonas" placeholder="Search personas..." />
+            </div>
 
-  runBtn.disabled=true; summaryBox.textContent='Running…'; detailPane.style.display='none'; tableBody.innerHTML='';
-  progWrap.style.display='block';
+            <div id="personaResults" class="personas-grid">
+                <!-- Persona cards will be inserted here -->
+            </div>
+        </div>
+    </div>
 
-  const personas = buildPersonas();
-  window._personas = personas;
-  const totalSteps = PERSONA_COUNT + PERSONA_COUNT + 1;
-  progBar.max = totalSteps; progBar.value=0;
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Persona Details</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
 
-  /* === Stage 1 : SIMULATION === */
-  progText.textContent='Stage 1/3 – Simulating behaviours…';
-  for(let i=0;i<PERSONA_COUNT;i+=CONCURRENCY_SIM){
-    const batch=personas.slice(i,i+CONCURRENCY_SIM);
-    await Promise.all(batch.map(async p=>{
-      try{
-        p.simText = (await groqChat(key,MODEL_SIM,[{role:'system',content:personaSystemPrompt(p)},{role:'user',content:objective}],MAX_TOKENS_SIM,TEMP_SIM)).trim();
-        p.status='done';
-      }catch(e){ p.status='error'; p.simText='(error) '+e.message; }
-      tableBody.insertAdjacentHTML('beforeend', rowHTML(p));
-      progBar.value++;
-    }));
-    await sleep(5000);
-  }
+    <!-- Summary Modal -->
+    <div id="summaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Final Analysis Summary</h2>
+                <button class="modal-close" onclick="closeSummaryModal()">×</button>
+            </div>
+                         <div class="modal-body">
+                <div id="summaryContent" class="summary-content">Loading...</div>
+            </div>
+        </div>
+    </div>
 
-  /* === Stage 2 : PER‑PERSONA SUMMARY === */
-  progText.textContent='Stage 2/3 – Compressing each persona view…';
-  for(let i=0;i<PERSONA_COUNT;i+=CONCURRENCY_SUM){
-    const batch=personas.slice(i,i+CONCURRENCY_SUM);
-    await Promise.all(batch.map(async p=>{
-      if(p.status!=='done'){ progBar.value++; return; }
-      try{
-        p.persSummary = (await groqChat(key,MODEL_SUMMARY,[{role:'system',content:'Summarise the behaviour in ≤100 tokens.'},{role:'user',content:p.simText}],MAX_TOKENS_PERS_SUM,TEMP_SUM)).trim();
-      }catch(e){ p.persSummary='(summary‑error) '+e.message; }
-      progBar.value++;
-    }));
-    await sleep(3000);
-  }
+    <!-- Include jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  /* === Stage 3 : FINAL SYNTHESIS === */
-  progText.textContent='Stage 3/3 – Crafting master summary…';
-  const megaInput = personas.map(p=>`[${p.ideology}, ${p.age}, ${p.gender}, ${p.region}] ${p.persSummary}`).join('\n');
-  try{
-    const final = await groqChat(key,MODEL_SUMMARY,[{role:'system',content:'You are a principal strategist specialising in behavioural insights. Deliver a thorough (5000 - 8000 tokens) synthesis capturing dominant trends, minority views, emotional spectrum, segmentation cues, and actionable implications. Be as detailed as possible, while making it easier to follow'},{role:'user',content:megaInput}],MAX_TOKENS_FINAL,TEMP_SUM);
-    summaryBox.textContent=final.trim();
-  }catch(e){ summaryBox.textContent='Final summary failed: '+e.message; }
-  progBar.value=totalSteps; progText.textContent='Complete'; runBtn.disabled=false;
-}
+    <script>
+        // Constants
+        const MODEL = "openai/gpt-oss-120b";
+        const MAX_TOKENS_PERSONA_GEN = 10000;
+        const MAX_TOKENS_SIM = 500;
+        const MAX_TOKENS_SUMMARY = 200;
+        const MAX_TOKENS_FINAL = 10000;
+        const BATCH_SIZE_PERSONA = 50;
+        const BATCH_SIZE_SIM = 100;
+        const TEMP_PERSONA = 1;
+        const TEMP_SIM = 1;
+        const TEMP_SUMMARY = 0.3;
 
-/* === TABLE / SEARCH / DETAILS === */
-function rowHTML(p){
-  return `<tr data-id="${p.id}"><td>${p.id}</td><td>${p.age}</td><td>${p.gender}</td><td>${p.region}</td><td>${p.ideology}</td><td>${p.profession}</td><td class="${p.status==='done'?'status-ok':'status-err'}">${p.status}</td></tr>`;
-}
+        // State
+        let personas = [];
+        let finalSummary = '';
+        let currentScenario = '';
 
-tableBody.addEventListener('click',e=>{
-  const tr=e.target.closest('tr'); if(!tr) return;
-  const p=window._personas.find(x=>x.id===parseInt(tr.dataset.id,10)); if(!p) return;
-  detailPane.textContent=`--- Persona #${p.id} (${p.age}, ${p.gender}, ${p.region}, ${p.ideology}) ---\n${p.simText}`;
-  detailPane.style.display='block';
-});
+        // DOM Elements
+        const $ = id => document.getElementById(id);
+        const apiKeyInput = $('apiKey');
+        const scenarioInput = $('scenario');
+        const personaCountInput = $('personaCount');
+        const personaDescInput = $('personaDescription');
+        const runBtn = $('runSimulation');
+        const progressCard = $('progressCard');
+        const progressFill = $('progressFill');
+        const progressText = $('progressText');
+        const resultsCard = $('resultsCard');
+        const personaResults = $('personaResults');
+        const searchBox = $('searchPersonas');
+        const exportBtn = $('exportPdf');
+        const viewSummaryBtn = $('viewSummary');
+        const estimatedRuntimeEl = $('estimatedRuntime');
 
-searchBox.addEventListener('input',()=>{
-  const term=searchBox.value.trim().toLowerCase();
-  Array.from(tableBody.children).forEach(tr=>{ tr.style.display = term===''||tr.innerText.toLowerCase().includes(term) ? '' : 'none'; });
-});
-</script>
+        // Initialize
+        updateEstimatedRuntime();
+        
+        // Toggle input modes
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (btn.dataset.mode === 'natural') {
+                    $('naturalInput').classList.remove('hidden');
+                    $('structuredInput').classList.add('hidden');
+                } else {
+                    $('naturalInput').classList.add('hidden');
+                    $('structuredInput').classList.remove('hidden');
+                }
+            });
+        });
+
+        // Update estimated runtime
+        personaCountInput.addEventListener('input', updateEstimatedRuntime);
+
+        function updateEstimatedRuntime() {
+            const count = parseInt(personaCountInput.value) || 100;
+            const minutes = Math.ceil(count / 50); // Rough estimate
+            estimatedRuntimeEl.textContent = `~${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        }
+
+        // Update progress dots
+        function updateProgressDots(step) {
+            document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                if (index < step) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Utility functions
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function callGroqAPI(messages, maxTokens = 1000, temperature = 0.7) {
+            const apiKey = apiKeyInput.value.trim();
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages,
+                    max_tokens: maxTokens,
+                    temperature
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} - ${await response.text()}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        function updateProgress(percent, text) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = text;
+        }
+
+        function getStructuredDescription() {
+            const ageRanges = [];
+            if ($('age-youth').checked) ageRanges.push('18-25');
+            if ($('age-young-adult').checked) ageRanges.push('26-35');
+            if ($('age-adult').checked) ageRanges.push('36-50');
+            if ($('age-senior').checked) ageRanges.push('51-70');
+            if ($('age-elderly').checked) ageRanges.push('70+');
+
+            const regions = [];
+            if ($('region-northeast').checked) regions.push('Northeast');
+            if ($('region-midwest').checked) regions.push('Midwest');
+            if ($('region-south').checked) regions.push('South');
+            if ($('region-west').checked) regions.push('West');
+
+            const professions = [];
+            if ($('prof-tech').checked) professions.push('tech/IT workers');
+            if ($('prof-healthcare').checked) professions.push('healthcare professionals');
+            if ($('prof-education').checked) professions.push('educators');
+            if ($('prof-business').checked) professions.push('business professionals');
+            if ($('prof-service').checked) professions.push('service workers');
+            if ($('prof-student').checked) professions.push('students');
+
+            const ideologies = [];
+            if ($('pol-very-liberal').checked) ideologies.push('very liberal');
+            if ($('pol-liberal').checked) ideologies.push('liberal');
+            if ($('pol-moderate').checked) ideologies.push('moderate');
+            if ($('pol-conservative').checked) ideologies.push('conservative');
+            if ($('pol-very-conservative').checked) ideologies.push('very conservative');
+
+            let description = `Generate personas with the following characteristics:
+- Age ranges: ${ageRanges.join(', ')}
+- Regions: ${regions.join(', ')}
+- Professions: ${professions.join(', ')}
+- Political ideologies: ${ideologies.join(', ')}`;
+
+            const additional = $('additionalParams').value.trim();
+            if (additional) {
+                description += `\nAdditional requirements: ${additional}`;
+            }
+
+            return description;
+        }
+
+        async function generatePersonas(count, description) {
+            const batches = Math.ceil(count / BATCH_SIZE_PERSONA);
+            personas = [];
+
+            for (let i = 0; i < batches; i++) {
+                const batchSize = Math.min(BATCH_SIZE_PERSONA, count - i * BATCH_SIZE_PERSONA);
+                const batchStart = i * BATCH_SIZE_PERSONA;
+                
+                updateProgress(
+                    (batchStart / count) * 25,
+                    `Generating personas batch ${i + 1}/${batches}...`
+                );
+
+                const prompt = `Generate exactly ${batchSize} diverse personas based on this description: ${description}
+
+For each persona, provide a JSON array with these exact fields:
+- age (number)
+- gender (string)
+- region (string)
+- ethnicity (string)
+- ideology (string)
+- profession (string)
+- education (string)
+- income (string)
+- marital_status (string)
+- personality_traits (string)
+
+Ensure that it is truly diverse and not a broader group of similar people. Return ONLY a valid JSON array, no other text.`;
+
+                try {
+                    const response = await callGroqAPI([
+                        { role: 'system', content: 'You are a demographic data generator. Return only valid JSON.' },
+                        { role: 'user', content: prompt }
+                    ], MAX_TOKENS_PERSONA_GEN, TEMP_PERSONA);
+
+                    // Parse the JSON response
+                    const cleanedResponse = response.trim().replace(/```json\n?|\n?```/g, '');
+                    const batch = JSON.parse(cleanedResponse);
+                    
+                    // Add IDs and status to each persona
+                    batch.forEach((p, idx) => {
+                        personas.push({
+                            id: batchStart + idx + 1,
+                            ...p,
+                            status: 'pending',
+                            simulation: null,
+                            summary: null
+                        });
+                    });
+                } catch (error) {
+                    console.error('Error generating personas batch:', error);
+                    // Generate fallback personas if API fails
+                    for (let j = 0; j < batchSize; j++) {
+                        personas.push({
+                            id: batchStart + j + 1,
+                            age: 25 + Math.floor(Math.random() * 40),
+                            gender: ['male', 'female', 'non-binary'][Math.floor(Math.random() * 3)],
+                            region: ['Northeast', 'Midwest', 'South', 'West'][Math.floor(Math.random() * 4)],
+                            ethnicity: 'Diverse',
+                            ideology: ['liberal', 'moderate', 'conservative'][Math.floor(Math.random() * 3)],
+                            profession: 'Various',
+                            education: 'College',
+                            income: '50-75k',
+                            marital_status: 'Single',
+                            personality_traits: 'Analytical',
+                            status: 'pending',
+                            simulation: null,
+                            summary: null
+                        });
+                    }
+                }
+
+                await sleep(1000); // Rate limiting
+            }
+
+            return personas;
+        }
+
+        async function simulatePersonaBehavior(persona, scenario) {
+            const systemPrompt = `You are a ${persona.age}-year-old ${persona.gender} from ${persona.region}.
+Background: ${persona.profession}, ${persona.education} education, ${persona.ideology} politically, ${persona.income} income.
+Personality: ${persona.personality_traits || 'Typical for demographic'}
+
+Respond in first person, as the above persona, describing YOUR specific overall response, emotions, and actions for the scenario. Be authentic to your persona. Keep response under 400 tokens. You are the person, and act liek that end to ened. You are free to share any thoughts on the mentioned scenario.}`;
+
+            try {
+                const response = await callGroqAPI([
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: scenario }
+                ], MAX_TOKENS_SIM, TEMP_SIM);
+
+                persona.simulation = response;
+                persona.status = 'completed';
+            } catch (error) {
+                persona.simulation = 'Simulation failed';
+                persona.status = 'error';
+            }
+        }
+
+        async function summarizePersonaResponse(persona) {
+            if (persona.status !== 'completed') return;
+
+            try {
+                const response = await callGroqAPI([
+                    { role: 'system', content: 'Summarize this behavioral response in 50-80 tokens, capturing key reactions and actions.' },
+                    { role: 'user', content: persona.simulation }
+                ], MAX_TOKENS_SUMMARY, TEMP_SUMMARY);
+
+                persona.summary = response;
+            } catch (error) {
+                persona.summary = 'Summary failed';
+            }
+        }
+
+        async function generateFinalSummary(personas, scenario) {
+            const summaries = personas
+                .filter(p => p.summary)
+                .map(p => `[${p.ideology}, ${p.age}, ${p.gender}, ${p.region}, ${p.profession}]: ${p.summary}`)
+                .join('\n');
+
+            const prompt = `Analyze these ${personas.length} behavioral responses to the scenario: "${scenario}"
+
+${summaries}
+
+Provide a comprehensive analysis (5000-8000 tokens) covering:
+1. Overall sentiment distribution and trends
+2. Key demographic differences in responses
+3. Major concerns and opportunities identified
+4. Regional and ideological variations
+5. Age and profession-based patterns
+6. Unexpected insights or outliers
+7. Strategic recommendations based on findings
+8. Risk factors and mitigation strategies
+
+Structure your analysis with clear sections and actionable insights.`;
+
+            try {
+                finalSummary = await callGroqAPI([
+                    { role: 'system', content: 'You are a senior behavioral analyst providing strategic insights from simulation data.' },
+                    { role: 'user', content: prompt }
+                ], MAX_TOKENS_FINAL, TEMP_SUMMARY);
+            } catch (error) {
+                finalSummary = 'Final summary generation failed: ' + error.message;
+            }
+        }
+
+        function renderPersonaCard(persona) {
+            return `
+                <div class="persona-card" data-id="${persona.id}">
+                    <div class="persona-header">
+                        <span class="persona-id">Persona #${persona.id}</span>
+                        <span class="persona-status status-${persona.status}">
+                            ${persona.status}
+                        </span>
+                    </div>
+                    <div class="persona-details">
+                        <div class="persona-detail">
+                            <span class="label">Age</span>
+                            <span class="value">${persona.age}</span>
+                        </div>
+                        <div class="persona-detail">
+                            <span class="label">Gender</span>
+                            <span class="value">${persona.gender}</span>
+                        </div>
+                        <div class="persona-detail">
+                            <span class="label">Region</span>
+                            <span class="value">${persona.region}</span>
+                        </div>
+                        <div class="persona-detail">
+                            <span class="label">Profession</span>
+                            <span class="value">${persona.profession}</span>
+                        </div>
+                        <div class="persona-detail">
+                            <span class="label">Ideology</span>
+                            <span class="value">${persona.ideology}</span>
+                        </div>
+                        <div class="persona-detail">
+                            <span class="label">Education</span>
+                            <span class="value">${persona.education}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showPersonaDetail(personaId) {
+            const persona = personas.find(p => p.id === personaId);
+            if (!persona) return;
+
+            $('modalTitle').textContent = `Persona #${persona.id}`;
+            $('modalContent').innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="label">Age</span>
+                        <span class="value">${persona.age}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Gender</span>
+                        <span class="value">${persona.gender}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Region</span>
+                        <span class="value">${persona.region}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Ethnicity</span>
+                        <span class="value">${persona.ethnicity}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Ideology</span>
+                        <span class="value">${persona.ideology}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Profession</span>
+                        <span class="value">${persona.profession}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Education</span>
+                        <span class="value">${persona.education}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Income</span>
+                        <span class="value">${persona.income}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Marital Status</span>
+                        <span class="value">${persona.marital_status}</span>
+                    </div>
+                </div>
+                
+                <div class="response-section">
+                    <h3>Behavioral Response</h3>
+                    <div class="response-content">
+                        ${persona.simulation || 'Not yet simulated'}
+                    </div>
+                </div>
+                
+                <div class="response-section">
+                    <h3>Summary</h3>
+                    <div class="response-content">
+                        ${persona.summary || 'Not yet summarized'}
+                    </div>
+                </div>
+            `;
+            
+            $('detailModal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('detailModal').classList.remove('show');
+        }
+
+        function closeSummaryModal() {
+            $('summaryModal').classList.remove('show');
+        }
+
+        // Main simulation function
+        async function runSimulation() {
+            const apiKey = apiKeyInput.value.trim();
+            currentScenario = scenarioInput.value.trim();
+            const personaCount = parseInt(personaCountInput.value);
+
+            if (!apiKey || !currentScenario || !personaCount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (personaCount > 5000) {
+                alert('Maximum 5000 personas allowed');
+                return;
+            }
+
+            // Get persona description based on input mode
+            const isNaturalMode = document.querySelector('.toggle-btn.active').dataset.mode === 'natural';
+            const personaDescription = isNaturalMode 
+                ? personaDescInput.value.trim() || 'Generate diverse American personas across all demographics'
+                : getStructuredDescription();
+
+            // Disable button and show progress
+            runBtn.disabled = true;
+            progressCard.classList.remove('hidden');
+            resultsCard.classList.add('hidden');
+            personas = [];
+            finalSummary = '';
+
+            try {
+                // Phase 1: Generate Personas
+                updateProgressDots(1);
+                updateProgress(0, 'Phase 1/4: Generating personas...');
+                await generatePersonas(personaCount, personaDescription);
+
+                // Phase 2: Simulate Behaviors
+                updateProgressDots(2);
+                updateProgress(25, 'Phase 2/4: Simulating behaviors...');
+                for (let i = 0; i < personas.length; i += BATCH_SIZE_SIM) {
+                    const batch = personas.slice(i, Math.min(i + BATCH_SIZE_SIM, personas.length));
+                    await Promise.all(batch.map(p => simulatePersonaBehavior(p, currentScenario)));
+                    
+                    const progress = 25 + ((i + batch.length) / personas.length) * 25;
+                    updateProgress(progress, `Phase 2/4: Simulated ${i + batch.length}/${personas.length} personas...`);
+                    
+                    // Update UI with results
+                    personaResults.innerHTML = personas.map(renderPersonaCard).join('');
+                    
+                    await sleep(2000); // Rate limiting
+                }
+
+                // Phase 3: Summarize Individual Responses
+                updateProgressDots(3);
+                updateProgress(50, 'Phase 3/4: Generating individual summaries...');
+                for (let i = 0; i < personas.length; i += BATCH_SIZE_SIM) {
+                    const batch = personas.slice(i, Math.min(i + BATCH_SIZE_SIM, personas.length));
+                    await Promise.all(batch.map(p => summarizePersonaResponse(p)));
+                    
+                    const progress = 50 + ((i + batch.length) / personas.length) * 25;
+                    updateProgress(progress, `Phase 3/4: Summarized ${i + batch.length}/${personas.length} personas...`);
+                    
+                    await sleep(1500); // Rate limiting
+                }
+
+                // Phase 4: Generate Final Summary
+                updateProgressDots(4);
+                updateProgress(75, 'Phase 4/4: Generating final analysis...');
+                await generateFinalSummary(personas, currentScenario);
+
+                // Complete
+                updateProgress(100, 'Simulation complete!');
+                resultsCard.classList.remove('hidden');
+                personaResults.innerHTML = personas.map(renderPersonaCard).join('');
+
+            } catch (error) {
+                console.error('Simulation error:', error);
+                alert(`Simulation failed: ${error.message}`);
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+
+        // Event listeners
+        runBtn.addEventListener('click', runSimulation);
+
+        personaResults.addEventListener('click', (e) => {
+            const card = e.target.closest('.persona-card');
+            if (card) {
+                showPersonaDetail(parseInt(card.dataset.id));
+            }
+        });
+
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = personaResults.querySelectorAll('.persona-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        viewSummaryBtn.addEventListener('click', () => {
+            const summaryEl = $('summaryContent');
+            const summaryText = finalSummary || 'No summary available yet.';
+            
+            // Format the summary text for better display
+            const formattedSummary = formatSummaryText(summaryText);
+            summaryEl.innerHTML = formattedSummary;
+            
+            $('summaryModal').classList.add('show');
+        });
+
+        function formatSummaryText(text) {
+            if (!text || text === 'No summary available yet.') {
+                return text;
+            }
+
+            // Replace markdown-style formatting with HTML
+            let formatted = text
+                // Bold text (**text** or __text__)
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                // Italic text (*text* or _text_)
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>')
+                // Headers (## Header)
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // Line breaks
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            // Wrap in paragraphs
+            formatted = '<p>' + formatted + '</p>';
+            
+            // Clean up empty paragraphs
+            formatted = formatted.replace(/<p><\/p>/g, '');
+            formatted = formatted.replace(/<p><br>/g, '<p>');
+            formatted = formatted.replace(/<br><\/p>/g, '</p>');
+
+            return formatted;
+        }
+
+        exportBtn.addEventListener('click', () => {
+            generatePDFReport();
+        });
+
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let yPos = 20;
+            const pageWidth = 190; // Usable width (210 - 20 margins)
+            const lineHeight = 6;
+            const sectionSpacing = 10;
+
+            // Helper function to add text with proper wrapping and page breaks
+            function addTextSection(text, fontSize = 10, isBold = false, isHeader = false) {
+                doc.setFontSize(fontSize);
+                doc.setFont(undefined, isBold ? 'bold' : 'normal');
+                
+                if (isHeader) {
+                    yPos += sectionSpacing;
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                }
+                
+                const lines = doc.splitTextToSize(text, pageWidth);
+                
+                lines.forEach(line => {
+                    if (yPos > 280) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(line, 20, yPos);
+                    yPos += lineHeight;
+                });
+                
+                if (isHeader) {
+                    yPos += 3; // Extra space after headers
+                }
+                
+                return yPos;
+            }
+
+            // Title Page
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('AI Persona Simulation Report', 20, 30);
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 45);
+            doc.text(`Total Personas: ${personas.length}`, 20, 55);
+            
+            yPos = 75;
+
+            // Scenario Section
+            addTextSection('SCENARIO', 16, true, true);
+            addTextSection(currentScenario, 11, false, false);
+            
+            yPos += sectionSpacing;
+
+            // Executive Summary
+            if (finalSummary) {
+                addTextSection('EXECUTIVE SUMMARY', 16, true, true);
+                
+                // Clean and format the summary text
+                let cleanSummary = finalSummary
+                    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove markdown bold
+                    .replace(/\*(.*?)\*/g, '$1') // Remove markdown italic
+                    .replace(/#{1,3}\s*/g, '') // Remove markdown headers
+                    .trim();
+                
+                // Split into paragraphs and add them
+                const paragraphs = cleanSummary.split('\n\n').filter(p => p.trim());
+                paragraphs.forEach((paragraph, index) => {
+                    if (paragraph.trim()) {
+                        addTextSection(paragraph.trim(), 10, false, false);
+                        yPos += 3; // Space between paragraphs
+                    }
+                });
+            }
+
+            // New page for persona details
+            doc.addPage();
+            yPos = 20;
+            
+            addTextSection('INDIVIDUAL PERSONA RESPONSES', 16, true, true);
+            
+            // Group personas by status
+            const completedPersonas = personas.filter(p => p.status === 'completed');
+            const errorPersonas = personas.filter(p => p.status === 'error');
+            
+            if (completedPersonas.length > 0) {
+                addTextSection(`Successfully Analyzed Personas (${completedPersonas.length})`, 14, true, true);
+                
+                completedPersonas.forEach((persona, index) => {
+                    // Check if we need a new page for this persona
+                    if (yPos > 240) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Persona header
+                    const personaHeader = `Persona #${persona.id} - ${persona.age} year old ${persona.gender}`;
+                    addTextSection(personaHeader, 12, true, false);
+                    
+                    // Persona details
+                    const details = `${persona.profession} from ${persona.region}, ${persona.ideology} ideology, ${persona.education} education, ${persona.income} income`;
+                    addTextSection(details, 9, false, false);
+                    
+                    yPos += 3;
+                    
+                    // Behavioral response
+                    if (persona.simulation) {
+                        addTextSection('Response:', 10, true, false);
+                        addTextSection(persona.simulation, 9, false, false);
+                    }
+                    
+                    // Summary
+                    if (persona.summary) {
+                        yPos += 2;
+                        addTextSection('Summary:', 10, true, false);
+                        addTextSection(persona.summary, 9, false, false);
+                    }
+                    
+                    yPos += sectionSpacing; // Space between personas
+                });
+            }
+            
+            // Error personas section
+            if (errorPersonas.length > 0) {
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                addTextSection(`Failed Analyses (${errorPersonas.length})`, 14, true, true);
+                
+                errorPersonas.forEach(persona => {
+                    const errorInfo = `Persona #${persona.id} - ${persona.age} year old ${persona.gender} from ${persona.region} - Analysis failed`;
+                    addTextSection(errorInfo, 9, false, false);
+                });
+            }
+            
+            // Footer on last page
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Page ${i} of ${totalPages}`, 20, 290);
+                doc.text('Generated by AI Persona Simulator', 150, 290);
+            }
+            
+            // Save the PDF
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            doc.save(`AI-Persona-Simulation-Report-${timestamp}.pdf`);
+        }
+
+        // Modal close on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target === $('detailModal')) {
+                closeModal();
+            }
+            if (e.target === $('summaryModal')) {
+                closeSummaryModal();
+            }
+        });
+    </script>
 </body>
+
 </html>
