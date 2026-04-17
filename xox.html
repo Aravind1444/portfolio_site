@@ -584,20 +584,45 @@
   const hostId = urlParams.get('game');
   isHost = !hostId;
 
+  // ──── Shared connection handler (called exactly once per connection) ────
+  function wireConnection(c) {
+    conn = c;
+    c.on('open', () => {
+      console.log('[XOX] Connection opened. isHost=' + isHost);
+      if (isHost) {
+        setStatus('connected', 'Opponent connected! <strong>You are X</strong>');
+        send({ type: 'sync', board, currentTurn, scores });
+      } else {
+        sharePanel.style.display = 'none';
+        newGameBtn.style.display = 'none';
+        setStatus('connected', 'Connected! <strong>You are O</strong>');
+        addYouTag('O');
+        hideLoading();
+        updateTurnUI();
+      }
+    });
+    c.on('data', handleMessage);
+    c.on('close', () => {
+      setStatus('error', 'Opponent disconnected');
+      showDisconnect();
+    });
+    c.on('error', (err) => {
+      console.error('[XOX] Connection error:', err);
+      setStatus('error', 'Connection error');
+      hideLoading();
+    });
+  }
+
   // ──── Init PeerJS ────
   function initPeer() {
     loadingMsg.textContent = isHost ? 'Creating game room...' : 'Joining game...';
 
-    peer = new Peer(undefined, {
-      host: '0.peerjs.com',
-      port: 443,
-      path: '/',
-      secure: true,
-      debug: 0
-    });
+    // Use default PeerJS cloud — no custom config needed
+    peer = new Peer();
 
     peer.on('open', (id) => {
       myPeerId = id;
+      console.log('[XOX] Peer open. ID=' + id + ' isHost=' + isHost);
       if (isHost) {
         myRole = 'X';
         setupHostUI(id);
@@ -608,10 +633,17 @@
     });
 
     peer.on('error', (err) => {
-      console.error('Peer error:', err);
+      console.error('[XOX] Peer error:', err.type, err);
       if (err.type === 'peer-unavailable') {
         loadingMsg.textContent = 'Game room not found. It may have expired.';
         setStatus('error', 'Game not found — ask for a new link');
+      } else if (err.type === 'network') {
+        loadingMsg.textContent = 'Network error. Check your connection.';
+        setStatus('error', 'Network error — check your connection');
+      } else if (err.type === 'disconnected') {
+        loadingMsg.textContent = 'Disconnected. Reconnecting...';
+        peer.reconnect();
+        return;
       } else {
         loadingMsg.textContent = 'Connection error. Try refreshing.';
         setStatus('error', 'Connection error — try refreshing');
@@ -619,14 +651,19 @@
       hideLoading();
     });
 
+    peer.on('disconnected', () => {
+      console.log('[XOX] Peer disconnected, attempting reconnect...');
+      if (!peer.destroyed) peer.reconnect();
+    });
+
     if (isHost) {
       peer.on('connection', (c) => {
+        console.log('[XOX] Incoming connection from peer');
         if (conn && conn.open) {
           c.on('open', () => c.close());
           return;
         }
-        conn = c;
-        setupConnection();
+        wireConnection(c);
       });
     }
   }
@@ -643,34 +680,10 @@
   }
 
   function connectToHost(hostPeerId) {
-    conn = peer.connect(hostPeerId, { reliable: true });
-    setupConnection();
-    conn.on('open', () => {
-      sharePanel.style.display = 'none';
-      newGameBtn.style.display = 'none';
-      setStatus('connected', 'Connected! <strong>You are O</strong>');
-      addYouTag('O');
-      hideLoading();
-      updateTurnUI();
-    });
-    conn.on('error', () => {
-      setStatus('error', 'Could not connect to host. Link may be expired.');
-      hideLoading();
-    });
-  }
-
-  function setupConnection() {
-    conn.on('open', () => {
-      if (isHost) {
-        setStatus('connected', 'Opponent connected! <strong>You are X</strong>');
-        send({ type: 'sync', board, currentTurn, scores });
-      }
-    });
-    conn.on('data', handleMessage);
-    conn.on('close', () => {
-      setStatus('error', 'Opponent disconnected');
-      showDisconnect();
-    });
+    console.log('[XOX] Connecting to host:', hostPeerId);
+    setStatus('waiting', 'Connecting to game room...');
+    const c = peer.connect(hostPeerId, { reliable: true, serialization: 'json' });
+    wireConnection(c);
   }
 
   function send(data) {
