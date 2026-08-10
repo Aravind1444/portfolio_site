@@ -1,308 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Site Generator V2</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        /* Basic styles for better presentation */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        #editor {
-            min-height: 250px; /* Adjusted height */
-        }
-        #content-display-area { /* Renamed for clarity */
-             /* Add some basic styling for rendered markdown */
-            padding: 1rem;
-            border: 1px solid #e2e8f0; /* gray-200 */
-            border-radius: 0.375rem; /* rounded-md */
-            background-color: #f7fafc; /* gray-100 */
-            min-height: 300px;
-        }
-        /* Style basic markdown elements */
-        #content-display-area h1, #content-display-area h2, #content-display-area h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; }
-        #content-display-area h1 { font-size: 1.875rem; } /* text-3xl */
-        #content-display-area h2 { font-size: 1.5rem; } /* text-2xl */
-        #content-display-area h3 { font-size: 1.25rem; } /* text-xl */
-        #content-display-area p { margin-bottom: 1em; line-height: 1.6; }
-        #content-display-area ul, #content-display-area ol { margin-left: 1.5em; margin-bottom: 1em; list-style: revert; }
-        #content-display-area a { color: #2563eb; text-decoration: underline; } /* blue-600 */
-        #content-display-area pre { background-color: #edf2f7; padding: 1em; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 1em;} /* gray-200 */
-        #content-display-area code { font-family: monospace; background-color: #edf2f7; padding: 0.2em 0.4em; border-radius: 0.25rem; } /* gray-200 */
-        #content-display-area pre code { background-color: transparent; padding: 0; border-radius: 0; }
-        #content-display-area blockquote { border-left: 4px solid #cbd5e0; padding-left: 1em; margin-left: 0; font-style: italic; color: #718096; } /* border-gray-400, text-gray-600 */
-
-        /* Style for displayed heading, tagline, image */
-        #display-heading {
-            font-size: 2.25rem; /* text-4xl */
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-            color: #1f2937; /* gray-800 */
-        }
-         #display-tagline {
-            font-size: 1.125rem; /* text-lg */
-            color: #4b5563; /* gray-600 */
-            margin-bottom: 1.5rem;
-        }
-        #display-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.375rem; /* rounded-md */
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
-            background-color: #e5e7eb; /* gray-200 for placeholder bg */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: data: blob:; connect-src 'self' https:; font-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Static Page Builder</title>
+  <style>
+    :root {
+      --bg:#f5f7fb; --panel:#fff; --text:#17202a; --muted:#667085; --line:#d0d5dd;
+      --soft:#f2f4f7; --brand:#175cd3; --brand-dark:#1849a9; --good:#067647;
+      --good-bg:#ecfdf3; --warn:#b54708; --warn-bg:#fffaeb; --danger:#b42318;
+      --danger-bg:#fef3f2; --shadow:0 14px 40px rgba(16,24,40,.08); --radius:18px;
+    }
+    *{box-sizing:border-box} html{color-scheme:light} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+    button,input,textarea,select{font:inherit} button{cursor:pointer} button:disabled{cursor:not-allowed;opacity:.55} a{color:var(--brand)}
+    .shell{max-width:1040px;margin:0 auto;padding:28px 18px 56px}
+    .panel{background:var(--panel);border:1px solid #eaecf0;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:27px 30px 20px;border-bottom:1px solid #eaecf0}.panel-body{padding:28px 30px 32px}
+    h1,h2,h3{line-height:1.2;letter-spacing:-.025em}h1{font-size:clamp(30px,5vw,46px);margin:0 0 10px}h2{font-size:23px;margin:0 0 8px}h3{font-size:17px;margin:0 0 8px}p{margin:0 0 14px}.muted{color:var(--muted)}.small{font-size:13px}
+    .section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 12px;padding-top:24px;border-top:1px solid #eaecf0}.section-title:first-child{margin-top:0;padding-top:0;border-top:0}.section-title h3{margin:0}.section-copy{color:var(--muted);font-size:12px;margin-top:3px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.field{margin-bottom:18px}.field label{display:block;margin-bottom:7px;font-weight:650;font-size:14px}.field-help{color:var(--muted);font-size:12px;margin-top:6px}
+    input[type="text"],input[type="password"],input[type="url"],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--text);outline:none;transition:box-shadow .15s,border-color .15s}
+    textarea{min-height:120px;resize:vertical;line-height:1.5}#content-input{min-height:320px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.55}.post-body{min-height:105px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+    input:focus,textarea:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px #eff4ff}
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choice{display:block;border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.choice:hover{border-color:#98a2b3}.choice input{margin-right:7px}.choice-title{font-weight:700}.choice-copy{margin:6px 0 0 24px;color:var(--muted);font-size:12px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;align-items:center;padding-top:8px}.btn{border:1px solid var(--line);background:#fff;color:#344054;border-radius:10px;padding:10px 14px;font-weight:700}.btn:hover{background:#f9fafb}.btn.primary{border-color:var(--brand);background:var(--brand);color:#fff}.btn.primary:hover{background:var(--brand-dark)}.btn.ghost{border-color:transparent;background:transparent}.btn.danger{border-color:#fecdca;color:var(--danger);background:#fff}.btn.small-btn{padding:7px 10px;font-size:13px}
+    .notice{border:1px solid #fedf89;background:var(--warn-bg);color:#7a2e0e;border-radius:12px;padding:13px 14px;margin:14px 0;font-size:14px}.notice.good{border-color:#abefc6;background:var(--good-bg);color:#05603a}.notice.danger{border-color:#fecdca;background:var(--danger-bg);color:#912018}
+    .action-editor{border:1px solid #eaecf0;background:#fafafa;border-radius:14px;padding:15px;margin-bottom:12px}.action-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.action-number{font-weight:750;font-size:13px;color:#475467}.action-fields{display:grid;grid-template-columns:1fr 180px;gap:12px}.action-wide{grid-column:1/-1}
+    .viewer{max-width:860px;margin:0 auto}.viewer-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}.pill{border-radius:999px;padding:5px 9px;background:var(--soft);color:#475467;font-weight:650;font-size:12px}.pill.internal{background:#eff8ff;color:#175cd3}.pill.confidential{background:#fff4ed;color:#b93815}.pill.protected{background:#ecfdf3;color:#067647}
+    .hero-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:-4px 0 26px}.hero-gallery.single{grid-template-columns:1fr}.hero-image{width:100%;height:260px;object-fit:cover;border-radius:16px;background:#f2f4f7;border:1px solid #eaecf0}.hero-gallery.single .hero-image{height:min(440px,52vw)}
+    .viewer-summary{color:#475467;font-size:19px;margin:0 0 24px}.viewer-content{border-top:1px solid #eaecf0;padding-top:24px}.viewer-content h1{font-size:30px;margin:28px 0 12px}.viewer-content h2{font-size:24px;margin:26px 0 10px}.viewer-content h3{font-size:19px;margin:22px 0 8px}.viewer-content p{margin:0 0 15px}.viewer-content ul,.viewer-content ol{margin:0 0 16px 22px;padding:0}.viewer-content li{margin:4px 0}.viewer-content blockquote{margin:16px 0;padding:2px 0 2px 14px;border-left:4px solid #d0d5dd;color:#475467}.viewer-content pre{overflow-x:auto;background:#101828;color:#f2f4f7;border-radius:12px;padding:16px;margin:16px 0}.viewer-content code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f2f4f7;border-radius:5px;padding:2px 5px;font-size:.93em}.viewer-content pre code{background:transparent;padding:0}.viewer-content hr{border:0;border-top:1px solid #eaecf0;margin:24px 0}
+    .viewer-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;padding-top:24px;border-top:1px solid #eaecf0}.viewer-action-status{margin-top:10px;font-size:13px;min-height:20px;color:var(--good)}
+    .unlock{max-width:520px;margin:54px auto}.unlock-icon{width:48px;height:48px;border-radius:14px;background:#eff4ff;color:#175cd3;display:grid;place-items:center;font-size:23px;margin-bottom:16px}.expired{max-width:620px;margin:48px auto;text-align:center}.expired-badge{width:52px;height:52px;border-radius:15px;background:#fef3f2;color:#b42318;display:grid;place-items:center;margin:0 auto 16px;font-weight:800}
+    .hidden{display:none!important}.error{color:var(--danger);font-size:13px;margin-top:8px;min-height:20px}.success{color:var(--good);font-size:13px;margin-top:8px;min-height:20px}
+    @media(max-width:760px){.shell{padding:16px 12px 40px}.panel-head,.panel-body{padding-left:18px;padding-right:18px}.grid,.segmented,.action-fields{grid-template-columns:1fr}.action-wide{grid-column:auto}.toolbar{justify-content:stretch}.toolbar .btn{flex:1 1 auto}.hero-gallery{grid-template-columns:1fr}.hero-image,.hero-gallery.single .hero-image{height:auto;max-height:420px}}
+  </style>
 </head>
-<body class="bg-gray-50 p-4 md:p-8">
-
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-
-        <div id="editor-container">
-            <h1 class="text-2xl font-bold mb-4 text-center text-gray-700">Mini Site Generator</h1>
-            <div class="mb-4">
-                <label for="heading-input" class="block text-sm font-medium text-gray-700 mb-1">Heading:</label>
-                <input type="text" id="heading-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter site heading">
-            </div>
-            <div class="mb-4">
-                <label for="tagline-input" class="block text-sm font-medium text-gray-700 mb-1">Tagline:</label>
-                <input type="text" id="tagline-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Enter site tagline (optional)">
-            </div>
-            <div class="mb-4">
-                <label for="image-url-input" class="block text-sm font-medium text-gray-700 mb-1">Hero Image URL:</label>
-                <input type="url" id="image-url-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="https://example.com/image.jpg (optional)">
-            </div>
-
-            <div class="mb-4">
-                <label for="editor" class="block text-sm font-medium text-gray-700 mb-1">Main Content (Markdown supported):</label>
-                <textarea id="editor" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Type your main text or paste Markdown here..."></textarea>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">The URL will update automatically as you type. Share the URL to share your content.</p>
-             <button id="copy-editor-url-button" class="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Copy Shareable URL
-            </button>
-             <div id="copy-editor-message" class="text-sm text-green-600 mt-2 hidden">URL copied to clipboard!</div>
+<body>
+  <main class="shell">
+    <section id="editor-view" class="panel">
+      <div class="panel-head">
+        <h2>Build a page</h2>
+        <p class="muted">Add content, images, and actions. Publish when it is ready.</p>
+      </div>
+      <div class="panel-body">
+        <div class="section-title"><div><h3>Page content</h3><div class="section-copy">The core content readers will see.</div></div></div>
+        <div class="field"><label for="title-input">Page title</label><input id="title-input" type="text" maxlength="160" autocomplete="off" placeholder="Example: Innovation Week 2026"></div>
+        <div class="field"><label for="summary-input">Summary <span class="muted">(optional)</span></label><input id="summary-input" type="text" maxlength="280" autocomplete="off" placeholder="A short description or context line"></div>
+        <div class="field">
+          <label for="image-input">Image URLs <span class="muted">(optional)</span></label>
+          <textarea id="image-input" placeholder="https://example.com/hero.jpg&#10;https://example.com/secondary.jpg"></textarea>
+          <div class="field-help">One HTTPS image URL per line. Images render above the title; the first image gets priority.</div>
+        </div>
+        <div class="field">
+          <label for="content-input">Content</label>
+          <textarea id="content-input" spellcheck="true" placeholder="# Heading&#10;&#10;Write or paste content here.&#10;&#10;Supported: headings, bullets, numbered lists, blockquotes, code blocks, **bold**, *italic*, `code`, and [links](https://example.com)."></textarea>
+          <div class="field-help">A safe Markdown subset is rendered. Raw HTML is shown as text.</div>
         </div>
 
-        <div id="content-display-container" class="hidden">
-            <h1 id="display-heading" class="text-center"></h1>
-            <p id="display-tagline" class="text-center"></p>
-            <img id="display-image" src="" alt="Hero Image" class="mx-auto hidden" onerror="this.style.display='none'; console.warn('Image failed to load:', this.src)"> <hr class="my-6 border-gray-300"> <p class="text-sm font-medium text-gray-700 mb-2"></p>
-            <div id="content-display-area">
-                </div>
-             <button id="copy-display-url-button" class="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Copy Shareable URL
-            </button>
-             <div id="copy-display-message" class="text-sm text-green-600 mt-2 hidden">URL copied to clipboard!</div>
+        <div class="section-title">
+          <div><h3>Buttons & actions</h3><div class="section-copy">Create link buttons or POST JSON actions.</div></div>
+          <button id="add-action-button" class="btn small-btn" type="button">+ Add button</button>
+        </div>
+        <div id="actions-editor"></div>
+        <div id="actions-empty" class="field-help">No buttons yet.</div>
+
+        <div class="section-title"><div><h3>Publishing</h3><div class="section-copy">Choose how the share URL is packaged.</div></div></div>
+        <div class="grid">
+          <div class="field">
+            <label for="classification-input">Page label</label>
+            <select id="classification-input"><option value="INTERNAL" selected>INTERNAL</option><option value="CONFIDENTIAL">CONFIDENTIAL</option></select>
+          </div>
+          <div class="field">
+            <label for="expiry-input">Valid for</label>
+            <select id="expiry-input">
+              <option value="0" selected>No expiry</option>
+              <optgroup label="Hours">
+                <option value="h:1">1 hour</option>
+                <option value="h:2">2 hours</option>
+                <option value="h:4">4 hours</option>
+                <option value="h:6">6 hours</option>
+                <option value="h:8">8 hours</option>
+                <option value="h:12">12 hours</option>
+                <option value="h:24">24 hours</option>
+                <option value="h:48">48 hours</option>
+              </optgroup>
+              <optgroup label="Days">
+                <option value="d:1">1 day</option>
+                <option value="d:3">3 days</option>
+                <option value="d:7">7 days</option>
+                <option value="d:30">30 days</option>
+                <option value="d:90">90 days</option>
+              </optgroup>
+            </select>
+            <div class="field-help">Expiry starts when you publish the share link.</div>
+          </div>
         </div>
 
-    </div>
+        <div class="field">
+          <label>Share mode</label>
+          <div class="segmented">
+            <label class="choice"><span><input type="radio" name="protection" value="passphrase" checked> <span class="choice-title">Passphrase</span></span><div class="choice-copy">The share URL contains encrypted page data; viewers enter the passphrase to open it.</div></label>
+            <label class="choice"><span><input type="radio" name="protection" value="link"> <span class="choice-title">Link only</span></span><div class="choice-copy">No prompt for viewers. The URL itself carries everything required to open the page.</div></label>
+          </div>
+        </div>
+        <div id="passphrase-fields" class="grid">
+          <div class="field"><label for="passphrase-input">Passphrase</label><input id="passphrase-input" type="password" minlength="12" autocomplete="new-password" placeholder="At least 12 characters"></div>
+          <div class="field"><label for="confirm-passphrase-input">Confirm passphrase</label><input id="confirm-passphrase-input" type="password" minlength="12" autocomplete="new-password" placeholder="Repeat passphrase"><button id="generate-passphrase-button" class="btn small-btn" type="button" style="margin-top:8px">Generate passphrase</button></div>
+        </div>
 
-    <script>
-        // --- DOM Elements ---
-        const editor = document.getElementById('editor');
-        const headingInput = document.getElementById('heading-input');
-        const taglineInput = document.getElementById('tagline-input');
-        const imageUrlInput = document.getElementById('image-url-input');
-        const contentDisplayArea = document.getElementById('content-display-area'); // Renamed div
-        const displayHeading = document.getElementById('display-heading');
-        const displayTagline = document.getElementById('display-tagline');
-        const displayImage = document.getElementById('display-image');
-        const editorContainer = document.getElementById('editor-container');
-        const contentDisplayContainer = document.getElementById('content-display-container');
-        const copyEditorUrlButton = document.getElementById('copy-editor-url-button');
-        const copyEditorMessage = document.getElementById('copy-editor-message');
-        const copyDisplayUrlButton = document.getElementById('copy-display-url-button');
-        const copyDisplayMessage = document.getElementById('copy-display-message');
+        <div class="toolbar"><button id="preview-button" class="btn" type="button">Preview</button><button id="publish-button" class="btn primary" type="button">Publish & copy link</button></div>
+        <div id="editor-error" class="error" role="alert"></div><div id="editor-success" class="success" role="status"></div>
+      </div>
+    </section>
 
-        let debounceTimer;
-        const DEBOUNCE_DELAY = 500; // ms
+    <section id="unlock-view" class="panel hidden">
+      <div class="panel-body unlock">
+        <div class="unlock-icon" aria-hidden="true">*</div><h2>Open page</h2><p class="muted">Enter the passphrase to continue.</p>
+        <div class="field"><label for="unlock-passphrase">Passphrase</label><input id="unlock-passphrase" type="password" autocomplete="current-password" placeholder="Enter passphrase"></div>
+        <button id="unlock-button" class="btn primary" type="button">Open page</button><div id="unlock-error" class="error" role="alert"></div>
+      </div>
+    </section>
 
-        // --- Encoding/Decoding ---
+    <section id="viewer-view" class="panel hidden">
+      <div id="expired-view" class="panel-body expired hidden"><div class="expired-badge">!</div><h2>This page is no longer valid</h2><p id="expired-copy" class="muted"></p><button id="expired-new-page" class="btn" type="button">Create new page</button></div>
+      <div id="viewer-body" class="panel-body viewer">
+        <div id="viewer-images" class="hero-gallery hidden"></div>
+        <div class="viewer-meta"><span id="viewer-classification" class="pill internal"></span><span id="viewer-protection" class="pill protected"></span><span id="viewer-created" class="pill"></span><span id="viewer-expiry-pill" class="pill"></span></div>
+        <h1 id="viewer-title"></h1><p id="viewer-summary" class="viewer-summary hidden"></p><div id="viewer-content" class="viewer-content"></div>
+        <div id="viewer-actions" class="viewer-actions hidden"></div><div id="viewer-action-status" class="viewer-action-status"></div>
+        <div class="toolbar"><button id="back-to-edit" class="btn hidden" type="button">Back to edit</button><button id="copy-published-link" class="btn hidden" type="button">Copy share link again</button><button id="new-page-button" class="btn" type="button">Create new page</button></div>
+        <div id="viewer-message" class="success" role="status"></div>
+      </div>
+    </section>
+  </main>
 
-        // Encodes text to a URL-safe Base64 string
-        function safeEncode(str) {
-            try {
-                return btoa(unescape(encodeURIComponent(str)));
-            } catch (e) {
-                console.error("Encoding failed:", e);
-                return '';
-            }
-        }
+<script>
+'use strict';
+const $=id=>document.getElementById(id), enc=new TextEncoder(), dec=new TextDecoder();
+const editorView=$('editor-view'),unlockView=$('unlock-view'),viewerView=$('viewer-view');
+let actionCounter=0,pendingFragment='',lastPublishedUrl='';
+const PENDING_KEY='staticPageBuilder.pending.v4';
 
-        // Decodes a URL-safe Base64 string back to text
-        function safeDecode(base64Str) {
-            try {
-                return decodeURIComponent(escape(atob(base64Str)));
-            } catch (e) {
-                console.error("Decoding failed:", e);
-                return null;
-            }
-        }
+function showOnly(view){[editorView,unlockView,viewerView].forEach(v=>v.classList.toggle('hidden',v!==view));window.scrollTo({top:0,behavior:'instant'});}
+function bytesToB64url(bytes){let binary='';const step=0x8000;for(let i=0;i<bytes.length;i+=step)binary+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'');}
+function b64urlToBytes(value){const normalized=value.replace(/-/g,'+').replace(/_/g,'/'),padded=normalized+'='.repeat((4-normalized.length%4)%4),binary=atob(padded),out=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)out[i]=binary.charCodeAt(i);return out;}
+async function compressBytes(bytes){if(!('CompressionStream'in window))return{bytes,compressed:false};const stream=new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));return{bytes:new Uint8Array(await new Response(stream).arrayBuffer()),compressed:true};}
+async function decompressBytes(bytes,compressed){if(!compressed)return bytes;if(!('DecompressionStream'in window))throw new Error('This browser cannot decompress this link. Use a current browser.');const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return new Uint8Array(await new Response(stream).arrayBuffer());}
+async function deriveKey(passphrase,salt){const base=await crypto.subtle.importKey('raw',enc.encode(passphrase),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:210000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function importAesKey(raw){return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt']);}
+async function encryptPayload(payload,mode,passphrase){const packed=await compressBytes(enc.encode(JSON.stringify(payload))),iv=crypto.getRandomValues(new Uint8Array(12));let key,salt=null,rawKey=null;if(mode==='passphrase'){salt=crypto.getRandomValues(new Uint8Array(16));key=await deriveKey(passphrase,salt);}else{rawKey=crypto.getRandomValues(new Uint8Array(32));key=await importAesKey(rawKey);}const cipher=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,packed.bytes)),params=new URLSearchParams();params.set('v','4');params.set('m',mode==='passphrase'?'p':'l');params.set('z',packed.compressed?'1':'0');params.set('i',bytesToB64url(iv));params.set('d',bytesToB64url(cipher));if(salt)params.set('s',bytesToB64url(salt));if(rawKey)params.set('k',bytesToB64url(rawKey));return params.toString();}
+async function decryptPayload(params,passphrase){if(params.get('v')!=='4')throw new Error('Unsupported link version.');const mode=params.get('m'),iv=b64urlToBytes(params.get('i')||''),cipher=b64urlToBytes(params.get('d')||'');let key;if(mode==='p'){if(!passphrase)throw new Error('Passphrase required.');key=await deriveKey(passphrase,b64urlToBytes(params.get('s')||''));}else if(mode==='l'){key=await importAesKey(b64urlToBytes(params.get('k')||''));}else throw new Error('Invalid share mode.');let plain;try{plain=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,cipher));}catch(_){throw new Error('Unable to open this page. Check the passphrase or link.');}const unpacked=await decompressBytes(plain,params.get('z')==='1'),data=JSON.parse(dec.decode(unpacked));validatePayload(data);return{data,mode};}
+function validatePayload(data){if(!data||typeof data!=='object'||typeof data.title!=='string'||typeof data.content!=='string')throw new Error('Invalid page data.');if(!Array.isArray(data.images))data.images=[];if(!Array.isArray(data.actions))data.actions=[];if(!['INTERNAL','CONFIDENTIAL'].includes(data.classification))data.classification='INTERNAL';}
+function protectionMode(){const selected=document.querySelector('input[name="protection"]:checked');return selected?selected.value:'passphrase';}
+function updateProtectionUi(){$('passphrase-fields').classList.toggle('hidden',protectionMode()!=='passphrase');}
+function parseImageUrls(){return $('image-input').value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,6);}
+function collectActions(){return[...$('actions-editor').querySelectorAll('.action-editor')].map(row=>({label:row.querySelector('[data-field="label"]').value.trim(),type:row.querySelector('[data-field="type"]').value,url:row.querySelector('[data-field="url"]').value.trim(),body:row.querySelector('[data-field="body"]').value.trim()})).filter(a=>a.label||a.url||a.body);}
+function getEditorPayload(){const expiry=$('expiry-input').value||'0',now=Date.now();let durationMs=0;if(expiry!=='0'){const [unit,rawAmount]=expiry.split(':'),amount=Number(rawAmount);if(Number.isFinite(amount)&&amount>0)durationMs=amount*(unit==='h'?3600000:86400000);}return{title:$('title-input').value.trim(),summary:$('summary-input').value.trim(),images:parseImageUrls(),content:$('content-input').value,actions:collectActions(),classification:$('classification-input').value,createdAt:now,expiresAt:durationMs>0?now+durationMs:0};}
+function validateHttpsUrl(raw,label){try{const u=new URL(raw);if(u.protocol!=='https:')return label+' must use HTTPS.';return'';}catch(_){return'Enter a valid '+label.toLowerCase()+'.';}}
+function validateEditor(payload,mode){if(!payload.title)return'Add a page title.';if(!payload.content.trim())return'Add page content.';for(const image of payload.images){const e=validateHttpsUrl(image,'Image URL');if(e)return e;}for(const action of payload.actions){if(!action.label)return'Every button needs a label.';if(!action.url)return'Every button needs a URL.';const e=validateHttpsUrl(action.url,'Button URL');if(e)return e;if(action.type==='post'){if(action.body){try{JSON.parse(action.body);}catch(_){return'POST body for "'+action.label+'" must be valid JSON.';}}}}if(mode==='passphrase'){const p1=$('passphrase-input').value,p2=$('confirm-passphrase-input').value;if(p1.length<12)return'Use a passphrase with at least 12 characters.';if(p1!==p2)return'Passphrases do not match.';}return'';}
 
-        // --- Rendering ---
+function addAction(initial={}){actionCounter++;const row=document.createElement('div');row.className='action-editor';row.dataset.id=String(actionCounter);row.innerHTML='<div class="action-editor-head"><span class="action-number">Button '+actionCounter+'</span><button class="btn danger small-btn" type="button" data-remove>Remove</button></div><div class="action-fields"><div class="field"><label>Label</label><input type="text" data-field="label" maxlength="80" placeholder="Example: Open dashboard"></div><div class="field"><label>Action</label><select data-field="type"><option value="link">Open link</option><option value="post">POST JSON</option></select></div><div class="field action-wide"><label>URL</label><input type="url" data-field="url" placeholder="https://..."></div><div class="field action-wide post-config hidden"><label>POST body <span class="muted">(JSON)</span></label><textarea class="post-body" data-field="body" placeholder="{&#10;  &quot;event&quot;: &quot;page_action&quot;&#10;}"></textarea><div class="field-help">Sent with Content-Type: application/json and without browser credentials. Cross-origin endpoints must allow CORS.</div></div></div>';
+  const type=row.querySelector('[data-field="type"]'),toggle=()=>row.querySelector('.post-config').classList.toggle('hidden',type.value!=='post');type.addEventListener('change',toggle);row.querySelector('[data-remove]').addEventListener('click',()=>{row.remove();refreshActionLabels();});
+  row.querySelector('[data-field="label"]').value=initial.label||'';type.value=initial.type==='post'?'post':'link';row.querySelector('[data-field="url"]').value=initial.url||'';row.querySelector('[data-field="body"]').value=initial.body||'';toggle();$('actions-editor').appendChild(row);refreshActionLabels();}
+function refreshActionLabels(){[...$('actions-editor').querySelectorAll('.action-editor')].forEach((row,i)=>row.querySelector('.action-number').textContent='Button '+(i+1));$('actions-empty').classList.toggle('hidden',$('actions-editor').children.length>0);}
 
-        function renderPage(data) {
-            // Check if data is valid
-            if (!data || typeof data !== 'object') {
-                 console.error("Invalid data for rendering:", data);
-                 // Potentially show an error message to the user or revert to editor
-                 showEditorView(); // Revert to editor if data is bad
-                 return;
-            }
+async function publish(){$('editor-error').textContent='';$('editor-success').textContent='';const mode=protectionMode(),payload=getEditorPayload(),error=validateEditor(payload,mode);if(error){$('editor-error').textContent=error;return;}const button=$('publish-button');button.disabled=true;button.textContent='Publishing...';try{const fragment=await encryptPayload(payload,mode,$('passphrase-input').value),url=location.href.split('#')[0]+'#'+fragment;if(url.length>30000)throw new Error('This page is too large for reliable URL sharing. Reduce the content, images, or actions.');lastPublishedUrl=url;await copyText(url);$('editor-success').textContent='Share link copied.';await renderPage(payload,mode,false,true);}catch(e){$('editor-error').textContent=e.message||'Publishing failed.';}finally{button.disabled=false;button.textContent='Publish & copy link';}}
+async function preview(){$('editor-error').textContent='';const payload=getEditorPayload(),error=validateEditor(payload,protectionMode());if(error&&!(error.startsWith('Use a passphrase')||error==='Passphrases do not match.')){$('editor-error').textContent=error;return;}await renderPage(payload,protectionMode(),true,true);}
+async function copyText(text){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return;}const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Copy failed.');}
+function formatDate(ms){if(!ms)return'No expiry';return new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short'}).format(new Date(ms));}
+async function getCurrentTime(){if(location.protocol==='http:'||location.protocol==='https:'){try{const res=await fetch(location.pathname+location.search,{method:'HEAD',cache:'no-store',credentials:'omit',redirect:'follow'}),serverDate=res.headers.get('date'),value=serverDate?Date.parse(serverDate):NaN;if(Number.isFinite(value))return value;}catch(_){}}return Date.now();}
+async function renderPage(data,mode,isPreview,isCreator){showOnly(viewerView);$('expired-view').classList.add('hidden');$('viewer-body').classList.remove('hidden');if(!isPreview&&data.expiresAt){const now=await getCurrentTime();if(now>data.expiresAt){$('viewer-body').classList.add('hidden');$('expired-view').classList.remove('hidden');$('expired-copy').textContent='This page was valid until '+formatDate(data.expiresAt)+'.';return;}}
+  renderImages(data.images||[]);$('viewer-title').textContent=data.title||'Untitled';$('viewer-summary').textContent=data.summary||'';$('viewer-summary').classList.toggle('hidden',!data.summary);const classPill=$('viewer-classification');classPill.textContent=data.classification;classPill.className='pill '+(data.classification==='CONFIDENTIAL'?'confidential':'internal');$('viewer-protection').textContent=isPreview?'PREVIEW':(mode==='p'||mode==='passphrase'?'PASSPHRASE':'LINK');$('viewer-created').textContent='Created '+formatDate(data.createdAt);$('viewer-expiry-pill').textContent=data.expiresAt?'Valid until '+formatDate(data.expiresAt):'No expiry';renderMarkdownSafe(data.content,$('viewer-content'));renderActions(data.actions||[]);$('back-to-edit').classList.toggle('hidden',!isPreview);$('copy-published-link').classList.toggle('hidden',!(!isPreview&&isCreator&&lastPublishedUrl));$('viewer-message').textContent=isPreview?'Preview only.':'';}
+function renderImages(images){const box=$('viewer-images');box.replaceChildren();const safe=images.map(safeHttps).filter(Boolean).slice(0,6);box.classList.toggle('hidden',safe.length===0);box.classList.toggle('single',safe.length===1);safe.forEach((src,i)=>{const img=document.createElement('img');img.className='hero-image';img.src=src;img.alt='';img.referrerPolicy='no-referrer';img.loading=i===0?'eager':'lazy';img.decoding='async';img.addEventListener('error',()=>img.remove());box.appendChild(img);});}
+function renderActions(actions){const box=$('viewer-actions');box.replaceChildren();$('viewer-action-status').textContent='';const valid=actions.filter(a=>a&&a.label&&safeHttps(a.url));box.classList.toggle('hidden',valid.length===0);valid.forEach((action,i)=>{const button=document.createElement('button');button.type='button';button.className='btn '+(i===0?'primary':'');button.textContent=action.label;if(action.type==='post')button.addEventListener('click',()=>triggerPostAction(action,button));else button.addEventListener('click',()=>window.open(safeHttps(action.url),'_blank','noopener,noreferrer'));box.appendChild(button);});}
+async function triggerPostAction(action,button){const url=safeHttps(action.url);if(!url)return;let body={};if(action.body){try{body=JSON.parse(action.body);}catch(_){$('viewer-action-status').textContent='This action has invalid JSON.';return;}}const host=new URL(url).host;if(!confirm('Send this action to '+host+'?'))return;const original=button.textContent;button.disabled=true;button.textContent='Sending...';$('viewer-action-status').textContent='';try{const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'omit',mode:'cors',cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer'});if(!response.ok)throw new Error('Request returned '+response.status+'.');$('viewer-action-status').textContent='Action completed.';}catch(e){$('viewer-action-status').textContent='Action failed: '+(e.message||'request blocked or unavailable')+'.';}finally{button.disabled=false;button.textContent=original;}}
 
-            // Set Heading
-            displayHeading.textContent = data.heading || 'Untitled'; // Default heading
+function renderMarkdownSafe(markdown,container){container.replaceChildren();const lines=String(markdown).replace(/\r\n?/g,'\n').split('\n');let i=0,currentList=null,currentListType='';const closeList=()=>{currentList=null;currentListType='';};while(i<lines.length){const line=lines[i];if(/^```/.test(line)){closeList();const codeLines=[];i++;while(i<lines.length&&!/^```/.test(lines[i])){codeLines.push(lines[i]);i++;}if(i<lines.length)i++;const pre=document.createElement('pre'),code=document.createElement('code');code.textContent=codeLines.join('\n');pre.appendChild(code);container.appendChild(pre);continue;}if(!line.trim()){closeList();i++;continue;}if(/^---+$/.test(line.trim())){closeList();container.appendChild(document.createElement('hr'));i++;continue;}const heading=line.match(/^(#{1,3})\s+(.+)$/);if(heading){closeList();const h=document.createElement('h'+heading[1].length);appendInlineSafe(h,heading[2]);container.appendChild(h);i++;continue;}const quote=line.match(/^>\s?(.*)$/);if(quote){closeList();const block=document.createElement('blockquote');appendInlineSafe(block,quote[1]);container.appendChild(block);i++;continue;}const ul=line.match(/^\s*[-*+]\s+(.+)$/),ol=line.match(/^\s*\d+[.)]\s+(.+)$/);if(ul||ol){const type=ul?'ul':'ol';if(!currentList||currentListType!==type){currentList=document.createElement(type);currentListType=type;container.appendChild(currentList);}const li=document.createElement('li');appendInlineSafe(li,(ul||ol)[1]);currentList.appendChild(li);i++;continue;}closeList();const paraLines=[line];i++;while(i<lines.length&&lines[i].trim()&&!/^(#{1,3})\s+/.test(lines[i])&&!/^```/.test(lines[i])&&!/^>\s?/.test(lines[i])&&!/^\s*[-*+]\s+/.test(lines[i])&&!/^\s*\d+[.)]\s+/.test(lines[i])&&!/^---+$/.test(lines[i].trim())){paraLines.push(lines[i]);i++;}const p=document.createElement('p');appendInlineSafe(p,paraLines.join(' '));container.appendChild(p);}}
+function appendInlineSafe(parent,text){const pattern=/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;let last=0,match;while((match=pattern.exec(text))!==null){if(match.index>last)parent.appendChild(document.createTextNode(text.slice(last,match.index)));const token=match[0];if(token.startsWith('**')&&token.endsWith('**')){const strong=document.createElement('strong');strong.textContent=token.slice(2,-2);parent.appendChild(strong);}else if(token.startsWith('*')&&token.endsWith('*')){const em=document.createElement('em');em.textContent=token.slice(1,-1);parent.appendChild(em);}else if(token.startsWith('`')&&token.endsWith('`')){const code=document.createElement('code');code.textContent=token.slice(1,-1);parent.appendChild(code);}else if(token.startsWith('[')){const parts=token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);if(parts){const a=document.createElement('a');a.textContent=parts[1];const safe=safeLink(parts[2]);if(safe){a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.referrerPolicy='no-referrer';}else a.title='Blocked unsafe link';parent.appendChild(a);}}last=pattern.lastIndex;}if(last<text.length)parent.appendChild(document.createTextNode(text.slice(last)));}
+function safeHttps(raw){try{const u=new URL(raw);return u.protocol==='https:'?u.href:'';}catch(_){return'';}}
+function safeLink(raw){try{const u=new URL(raw,location.href);return u.protocol==='https:'||u.protocol==='mailto:'?u.href:'';}catch(_){return'';}}
 
-            // Set Tagline
-            if (data.tagline) {
-                displayTagline.textContent = data.tagline;
-                displayTagline.classList.remove('hidden');
-            } else {
-                displayTagline.classList.add('hidden');
-            }
+function startNewPage(){sessionStorage.removeItem(PENDING_KEY);pendingFragment='';lastPublishedUrl='';history.replaceState(null,'',location.pathname+location.search);$('title-input').value='';$('summary-input').value='';$('image-input').value='';$('content-input').value='';$('passphrase-input').value='';$('confirm-passphrase-input').value='';$('actions-editor').replaceChildren();refreshActionLabels();$('editor-error').textContent='';$('editor-success').textContent='';showOnly(editorView);$('title-input').focus();}
+function captureIncomingFragment(){const raw=location.hash.slice(1);if(raw){try{sessionStorage.setItem(PENDING_KEY,raw);}catch(_){}history.replaceState(null,'',location.pathname+location.search);return raw;}try{return sessionStorage.getItem(PENDING_KEY)||'';}catch(_){return'';}}
+function consumePendingFragment(){pendingFragment='';try{sessionStorage.removeItem(PENDING_KEY);}catch(_){}}
+async function unlockCurrent(){$('unlock-error').textContent='';const passphrase=$('unlock-passphrase').value;if(!passphrase){$('unlock-error').textContent='Enter the passphrase.';return;}const button=$('unlock-button');button.disabled=true;button.textContent='Opening...';try{const raw=pendingFragment||captureIncomingFragment();if(!raw)throw new Error('The page link is no longer available in this tab.');const result=await decryptPayload(new URLSearchParams(raw),passphrase);consumePendingFragment();$('unlock-passphrase').value='';await renderPage(result.data,result.mode,false,false);}catch(e){$('unlock-error').textContent=e.message||'Unable to open this page.';}finally{button.disabled=false;button.textContent='Open page';}}
+async function initialize(){pendingFragment=captureIncomingFragment();if(!pendingFragment){showOnly(editorView);return;}const params=new URLSearchParams(pendingFragment);if(params.get('v')!=='4'){consumePendingFragment();showOnly(editorView);$('editor-error').textContent='This link format is not supported by this version.';return;}if(params.get('m')==='p'){showOnly(unlockView);$('unlock-passphrase').focus();return;}try{const result=await decryptPayload(params,'');consumePendingFragment();await renderPage(result.data,result.mode,false,false);}catch(e){consumePendingFragment();showOnly(editorView);$('editor-error').textContent=e.message||'Unable to open this page.';}}
 
-            // Set Image
-            if (data.imageUrl) {
-                displayImage.src = data.imageUrl;
-                 // Reset display before setting src in case of previous error
-                displayImage.style.display = ''; // Use style.display instead of class for onerror compatibility
-                displayImage.classList.remove('hidden');
-            } else {
-                displayImage.classList.add('hidden');
-                displayImage.style.display = 'none'; // Ensure it's hidden if no URL
-            }
-
-            // Render Markdown Content
-            if (data.content && typeof marked !== 'undefined') {
-                contentDisplayArea.innerHTML = marked.parse(data.content);
-            } else if (data.content) {
-                 // Fallback if marked.js fails or isn't loaded - display plain text
-                 contentDisplayArea.textContent = data.content;
-            }
-             else {
-                contentDisplayArea.innerHTML = '<p class="text-gray-500 italic">No main content provided.</p>'; // Placeholder if no content
-            }
-
-            // Show the display container and hide the editor
-            editorContainer.classList.add('hidden');
-            contentDisplayContainer.classList.remove('hidden');
-        }
-
-        // --- URL Handling & Data Management ---
-
-        function updateUrlHashFromEditor() {
-            // Gather data from input fields
-            const data = {
-                heading: headingInput.value.trim(),
-                tagline: taglineInput.value.trim(),
-                imageUrl: imageUrlInput.value.trim(),
-                content: editor.value
-            };
-
-            // Convert data object to JSON string
-            const jsonString = JSON.stringify(data);
-
-            // Encode the JSON string
-            const encodedContent = safeEncode(jsonString);
-
-            // Update URL hash using replaceState to avoid history pollution
-            history.replaceState(null, '', '#' + encodedContent);
-        }
-
-        function getDataFromUrl() {
-            if (window.location.hash && window.location.hash.length > 1) {
-                const encodedContent = window.location.hash.substring(1);
-                const decodedJson = safeDecode(encodedContent);
-
-                if (decodedJson) {
-                    try {
-                        // Parse the JSON string back into an object
-                        return JSON.parse(decodedJson);
-                    } catch (e) {
-                        console.error("JSON Parsing failed:", e);
-                        return null; // Indicate failure
-                    }
-                }
-            }
-            return null; // No valid data in URL
-        }
-
-
-        // --- View Switching ---
-
-        function showEditorView() {
-             // Clear editor fields before showing
-             headingInput.value = '';
-             taglineInput.value = '';
-             imageUrlInput.value = '';
-             editor.value = '';
-             // Show editor, hide display
-             contentDisplayContainer.classList.add('hidden');
-             editorContainer.classList.remove('hidden');
-             headingInput.focus(); // Focus the first input
-        }
-
-        // --- Event Listeners ---
-
-        // Listen to input on all editor fields
-        [headingInput, taglineInput, imageUrlInput, editor].forEach(inputElement => {
-            inputElement.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(updateUrlHashFromEditor, DEBOUNCE_DELAY);
-            });
-        });
-
-        // Function to handle copying URL
-        function copyUrlToClipboard(button, messageElement) {
-             const urlToCopy = window.location.href;
-             navigator.clipboard.writeText(urlToCopy).then(() => {
-                 messageElement.classList.remove('hidden');
-                 setTimeout(() => {
-                     messageElement.classList.add('hidden');
-                 }, 3000); // Hide message after 3 seconds
-             }).catch(err => {
-                 console.error('Failed to copy URL: ', err);
-                 messageElement.textContent = 'Failed to copy!'; // Show error briefly
-                 messageElement.classList.remove('hidden','text-green-600');
-                 messageElement.classList.add('text-red-600');
-                  setTimeout(() => {
-                     messageElement.classList.add('hidden');
-                     messageElement.textContent = 'URL copied to clipboard!'; // Reset message text
-                     messageElement.classList.remove('text-red-600');
-                     messageElement.classList.add('text-green-600');
-                 }, 3000);
-             });
-        }
-
-        // Add listeners to both copy buttons
-        copyEditorUrlButton.addEventListener('click', () => copyUrlToClipboard(copyEditorUrlButton, copyEditorMessage));
-        copyDisplayUrlButton.addEventListener('click', () => copyUrlToClipboard(copyDisplayUrlButton, copyDisplayMessage));
-
-
-        // --- Initialization ---
-
-        function initialize() {
-            const initialData = getDataFromUrl();
-            if (initialData !== null) {
-                // Data found in URL hash -> Render the page
-                renderPage(initialData);
-            } else {
-                // No data in URL hash or decoding/parsing failed -> Show editor
-                showEditorView();
-            }
-        }
-
-        // Handle hash changes (e.g., back/forward buttons, manual hash change)
-        window.addEventListener('hashchange', initialize);
-
-        // Initial load
-        initialize();
-
-    </script>
-
+document.querySelectorAll('input[name="protection"]').forEach(input=>input.addEventListener('change',updateProtectionUi));
+$('add-action-button').addEventListener('click',()=>addAction());$('publish-button').addEventListener('click',publish);$('preview-button').addEventListener('click',preview);$('back-to-edit').addEventListener('click',()=>showOnly(editorView));
+$('generate-passphrase-button').addEventListener('click',async()=>{const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',random=crypto.getRandomValues(new Uint8Array(24));let value='';for(const b of random)value+=alphabet[b%alphabet.length];$('passphrase-input').value=value;$('confirm-passphrase-input').value=value;try{await copyText(value);$('editor-success').textContent='Passphrase generated and copied.';}catch(_){$('editor-success').textContent='Passphrase generated.';}});
+$('unlock-button').addEventListener('click',unlockCurrent);$('unlock-passphrase').addEventListener('keydown',e=>{if(e.key==='Enter')unlockCurrent();});$('new-page-button').addEventListener('click',startNewPage);$('expired-new-page').addEventListener('click',startNewPage);
+$('copy-published-link').addEventListener('click',async()=>{if(!lastPublishedUrl)return;try{await copyText(lastPublishedUrl);$('viewer-message').textContent='Share link copied.';}catch(e){$('viewer-message').textContent=e.message||'Copy failed.';}});
+updateProtectionUi();refreshActionLabels();initialize();
+</script>
 </body>
 </html>
